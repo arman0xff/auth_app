@@ -6,8 +6,8 @@
 
 <body>
 <h1>Dashboard</h1>
-<p>User: <?= $_SESSION["name"] ?>!</p>
-<p>Id: <?= $_SESSION["id"] ?>!</p>
-<a href="/logout">Logout</a>
+<div><p>User: <?= $_SESSION["name"] ?>!</p></div>
+<div><p>Id: <?= $_SESSION["id"] ?>!</p></div>
+<div><a href="/logout">Logout</a></div>
 </body>
 </html>
