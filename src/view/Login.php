@@ -1,9 +1,9 @@
 <?php
 session_start();
 
-require 'db_connection.php';
-require 'auth.php';
-require 'Models/user.php';
+require 'DBConnection.php';
+require 'Auth.php';
+require 'Models/User.php';
 
 $auth = new auth($pdo);
 $error = '';
@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $auth->login($email, $password);
         $_SESSION['id'] = $user->id;
         $_SESSION['name'] = $user->name;
-        header('Location: dashboard.php');
+        header('Location: Dashboard.php');
         exit;
     } catch (Exception $e) {
         $error = $e->getMessage();
@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <p style="color: red;"><?= $error ?></p>
     <?php endif; ?>
 
-    <form method="POST" action="login.php">
+    <form method="POST" action="Login.php">
         <label for="email">Email:</label>
         <input type="email" id="email" name="email" required><br><br>
 

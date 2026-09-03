@@ -3,9 +3,9 @@
 use DTOs\User\registeruserdto;
 use DTOs\UserDto;
 
-require '../src/db_connection.php';
-require "../src/auth.php";
-require "../src/DTOs/user_dto.php";
+require '../src/DBConnection.php';
+require "../src/Auth.php";
+require "../src/DTOs/UserDto.php";
 
 $auth = new auth($pdo);
 $message = "";
@@ -18,7 +18,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     if(strlen($name) < 3 || strlen($name) > 32){
         $message = "Wrong name length\n";
     }
-    else if (!str_contains($email, "@") || !$auth->check_email($email)) {
+    else if (!str_contains($email, "@") || $auth->check_email($email)) {
         $message = "Wrong email format\n";
     }
     else if(strlen($password) < 3 || strlen($password) > 32){

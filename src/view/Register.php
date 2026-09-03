@@ -1,8 +1,8 @@
 <?php
 
-require 'db_connection.php';
-require 'auth.php';
-require 'DTOs/User/registeruser_dto.php';
+require 'DBConnection.php';
+require 'Auth.php';
+require 'DTOs/User/RegisterUserDto.php';
 
 use DTOs\User\registeruserdto;
 
@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         $auth->create_user($registerUserDto);
-        header('Location: login.php');
+        header('Location: Login.php');
         exit;
     } catch (Exception $e) {
         $error = $e->getMessage();
@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <p style="color: red;"><?= $error ?></p>
     <?php endif; ?>
 
-    <form method="post" action="register.php">
+    <form method="post" action="Register.php">
         <label> Name: <input type="text" id="name" name="name" required><br><br> </label>
         <label> Email: <input type="email" id="email" name="email" required><br><br></label>
         <label> Password: <input type="password" id="password" name="password" required><br><br> </label>
