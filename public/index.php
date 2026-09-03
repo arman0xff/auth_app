@@ -33,20 +33,20 @@ switch ($request) {
                 }
             }
         }
-        require __DIR__ . '../src/view/Register.php';
+        require __DIR__ . '/../src/view/Register.php';
         break;
     }
     case '/login': {
-        require __DIR__ . '../src/view/Login.php';
+        require __DIR__ . '/../src/view/Login.php';
         break;
     }
 
     case '/dashboard': {
-        require __DIR__ . '../src/view/Dashboard.php';
+        require __DIR__ . '/../src/view/Dashboard.php';
         break;
     }
     case '/logout': {
-        require __DIR__ . '../src/view/Logout.php';
+        require __DIR__ . '/../src/view/Logout.php';
     }
 }
 ?>
