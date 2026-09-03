@@ -2,6 +2,9 @@
 use DTOs\User\registeruserdto;
 use DTOs\UserDto;
 $request = $_SERVER['REQUEST_URI'];
+
+session_start();
+
 switch ($request) {
     case '/':
     case '/register':
@@ -39,15 +42,12 @@ switch ($request) {
         break;
     }
     case '/login': {
-
-        session_start();
-
-        require 'DBConnection.php';
-        require 'Auth.php';
-        require 'Models/User.php';
+        require '../src/DBConnection.php';
+        require '../src/Auth.php';
+        require '../src/Models/User.php';
 
         $auth = new auth($pdo);
-        $error = '';
+        $message = '';
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $email = $_POST['email'];
@@ -57,10 +57,10 @@ switch ($request) {
                 $user = $auth->login($email, $password);
                 $_SESSION['id'] = $user->id;
                 $_SESSION['name'] = $user->name;
-                header('Location: Dashboard.php');
+                header('Location: /dashboard.php');
                 exit;
             } catch (Exception $e) {
-                $error = $e->getMessage();
+                $message = $e->getMessage();
             }
         }
 
@@ -69,10 +69,23 @@ switch ($request) {
     }
 
     case '/dashboard': {
+        if(!isset($_SESSION["id"])){
+            header("Location: /login.php");
+            exit;
+        }
+
         require __DIR__ . '/../src/view/Dashboard.php';
         break;
     }
     case '/logout': {
+        session_start();
+
+        $_SESSION = [];
+
+        session_destroy();
+
+        header('Location: /login.php');
+
         require __DIR__ . '/../src/view/Logout.php';
     }
 }
