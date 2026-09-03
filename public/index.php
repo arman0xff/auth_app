@@ -57,7 +57,7 @@ switch ($request) {
                 $user = $auth->login($email, $password);
                 $_SESSION['id'] = $user->id;
                 $_SESSION['name'] = $user->name;
-                header('Location: /dashboard.php');
+                header('Location: /dashboard');
                 exit;
             } catch (Exception $e) {
                 $message = $e->getMessage();
@@ -70,7 +70,7 @@ switch ($request) {
 
     case '/dashboard': {
         if(!isset($_SESSION["id"])){
-            header("Location: /login.php");
+            header("Location: /login");
             exit;
         }
 
@@ -84,9 +84,8 @@ switch ($request) {
 
         session_destroy();
 
-        header('Location: /login.php');
-
-        require __DIR__ . '/../src/view/Logout.php';
+        header('Location: /login');
+        exit;
     }
 }
 ?>
