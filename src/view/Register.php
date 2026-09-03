@@ -1,31 +1,3 @@
-<?php
-
-require 'DBConnection.php';
-require 'Auth.php';
-require 'DTOs/User/RegisterUserDto.php';
-
-use DTOs\User\registeruserdto;
-
-$auth = new auth($pdo);
-$error = '';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = $_POST['name'];
-    $email = $_POST['email'];
-    $password = $_POST['password'];
-
-    $registerUserDto = new registeruserdto($name, $email, $password);
-
-    try {
-        $auth->create_user($registerUserDto);
-        header('Location: Login.php');
-        exit;
-    } catch (Exception $e) {
-        $error = $e->getMessage();
-    }
-}
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 <body>
