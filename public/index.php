@@ -3,11 +3,11 @@ use DTOs\User\registeruserdto;
 use DTOs\UserDto;
 $request = $_SERVER['REQUEST_URI'];
 switch ($request) {
-    case '/view/register':
+    case '/register':
     {
         require '../src/DBConnection.php';
         require "../src/Auth.php";
-        require "../src/DTOs/UserDto.php";
+        require "../src/DTOs/User/RegisterUserDto.php";
 
         $auth = new auth($pdo);
         $message = "";
@@ -33,22 +33,20 @@ switch ($request) {
                 }
             }
         }
-        require __DIR__ . '/view/register.php';
+        require __DIR__ . '../src/view/Register.php';
+        break;
     }
-    case '/view/login':
-        require __DIR__ . '/view/login.php';
+    case '/login': {
+        require __DIR__ . '../src/view/Login.php';
+        break;
+    }
+
+    case '/dashboard': {
+        require __DIR__ . '../src/view/Dashboard.php';
+        break;
+    }
+    case '/logout': {
+        require __DIR__ . '../src/view/Logout.php';
+    }
 }
 ?>
-
-<!DOCTYPE html>
-<html lang="en">
-    <body>
-        <h1>Auth</h1>
-    <form method="POST" action="">
-        <label> Name: <input type="text" id="name" name="name" required </label>
-        <br><label> Email: <input type="text" id="email" name="email" required</label>
-        <br><label> Password: <input type="text" id="password" name="password" required</label>
-        <br><button type="submit">Register</button>
-    </form>
-    </body>
-</html>
