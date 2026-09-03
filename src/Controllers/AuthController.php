@@ -28,6 +28,7 @@ class AuthController
                 $new_user_dto = new registeruserdto($name, $email, $password);
                 try {
                     $auth->create_user($new_user_dto);
+
                     header('Location: /login');
                     exit;
                 } catch (Exception $e) {
