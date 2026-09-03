@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <p style="color: red;"><?= $error ?></p>
     <?php endif; ?>
 
-    <form method="POST" action="Login.php">
+    <form method="POST" action="/login">
         <label for="email">Email:</label>
         <input type="email" id="email" name="email" required><br><br>
 

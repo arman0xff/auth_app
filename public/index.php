@@ -3,6 +3,10 @@ use DTOs\User\registeruserdto;
 use DTOs\UserDto;
 $request = $_SERVER['REQUEST_URI'];
 switch ($request) {
+    case '/': {
+        require __DIR__ . '/../src/view/Register.php';
+        break;
+    }
     case '/register':
     {
         require '../src/DBConnection.php';
@@ -27,7 +31,7 @@ switch ($request) {
                 $new_user_dto = new registeruserdto($name, $email, $password);
                 try {
                     $auth->create_user($new_user_dto);
-                    $message = "You are registered";
+                    header('Location: /login');
                 } catch (Exception $e) {
                     $message = "Account doesnt registered";
                 }
