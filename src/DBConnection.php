@@ -2,8 +2,13 @@
 
 $host = "127.0.0.1";
 $user = "root";
-$pass = "root";
+$pass = "";
 $db = "auth_app";
 
-$pdo = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
+try{
+    $pdo = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
+}
+catch (PDOException $e) {
+    die("Error connecting to DB: " . $e->getMessage());
+}
 

@@ -53,3 +53,16 @@ a {
 p {
     margin: 6px 0;
 }
+
+.card {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px #0000001a;
+    width: 100%;
+    max-width: 360px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}

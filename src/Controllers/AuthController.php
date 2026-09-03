@@ -1,16 +1,17 @@
 <?php
 
-use DTOs\User\registeruserdto;
+use DTOs\User\RegisterUserDto;
 
 class AuthController
 {
+    public function __construct(private Auth $auth) {
+        
+    }
+
     public function register(): void
     {
-        require __DIR__ . '/../DBConnection.php';
-        require __DIR__ . "/../Auth.php";
         require __DIR__ . "/../DTOs/User/RegisterUserDto.php";
 
-        $auth = new auth($pdo);
         $message = "";
 
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -20,14 +21,14 @@ class AuthController
 
             if (strlen($name) < 3 || strlen($name) > 32) {
                 $message = "Wrong name length\n";
-            } else if (!str_contains($email, "@") || $auth->check_email($email)) {
+            } else if (!filter_var($email, FILTER_VALIDATE_EMAIL) || $this->auth->check_email($email)) {
                 $message = "Wrong email format\n";
             } else if (strlen($password) < 3 || strlen($password) > 32) {
                 $message = "Wrong password length\n";
             } else {
-                $new_user_dto = new registeruserdto($name, $email, $password);
+                $new_user_dto = new RegisterUserDto($name, $email, $password);
                 try {
-                    $auth->create_user($new_user_dto);
+                    $this->auth->create_user($new_user_dto);
 
                     header('Location: /login');
                     exit;
@@ -41,11 +42,8 @@ class AuthController
 
     public function login(): void
     {
-        require __DIR__ . '/../DBConnection.php';
-        require __DIR__ . '/../Auth.php';
         require __DIR__ . '/../Models/User.php';
 
-        $auth = new auth($pdo);
         $message = '';
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -53,7 +51,7 @@ class AuthController
             $password = $_POST['password'];
 
             try {
-                $user = $auth->login($email, $password);
+                $user = $this->auth->login($email, $password);
                 $_SESSION['id'] = $user->id;
                 $_SESSION['name'] = $user->name;
                 header('Location: /dashboard');
@@ -78,8 +76,6 @@ class AuthController
 
     public function logout(): void
     {
-        session_start();
-
         $_SESSION = [];
 
         session_destroy();

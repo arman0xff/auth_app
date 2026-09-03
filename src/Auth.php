@@ -1,7 +1,7 @@
 <?php
 
-use DTOs\User\registeruserdto;
-use DTOs\User\loginuserdto;
+use DTOs\User\RegisterUserDto;
+use DTOs\User\LoginUserDto;
 
 class auth
 {
@@ -10,7 +10,7 @@ class auth
         $this->pdo = $pdo;
     }
 
-    public function create_user(registeruserdto $user_dto):int {
+    public function create_user(RegisterUserDto $user_dto):int {
         if($this->check_email($user_dto->email)) {
             throw new Exception("Email is already in use");
         }

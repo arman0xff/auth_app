@@ -1,12 +1,13 @@
 <?php
-require __DIR__ . '/../src/Controllers/AuthController.php';
-$authController = new AuthController();
+require_once __DIR__ . '/../src/DBConnection.php';
+require_once __DIR__ . '/../src/Auth.php';
+require_once __DIR__ . '/../src/Controllers/AuthController.php';
 
-$request = $_SERVER['REQUEST_URI'];
+$authController = new AuthController(new Auth($pdo));
 
 session_start();
 
-switch ($request) {
+switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
     case '/':
 
     case '/register': {
