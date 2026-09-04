@@ -1,35 +1,40 @@
 <?php
 
-use DTOs\User\RegisterUserDto;
-use DTOs\User\LoginUserDto;
+namespace Services;
 
-class auth
+use DTOs\User\RegisterUserDto;
+use Exception;
+use Mailer;
+use PDO;
+use User;
+
+class UserService
 {
     private PDO $pdo;
     public function __construct(PDO $pdo) {
         $this->pdo = $pdo;
     }
 
-    public function create_user(RegisterUserDto $user_dto):int {
-        if($this->check_email($user_dto->email)) {
-            throw new Exception("Email is already in use");
-        }
-
-        $pass_hash = password_hash($user_dto->pass, PASSWORD_DEFAULT);
+    public function register(RegisterUserDto $userDto):int {
+        $pass_hash = password_hash($userDto->pass, PASSWORD_DEFAULT);
 
         $sql = "INSERT INTO users (name, email, password, verification_token) VALUES(:name, :email, :pass, :verification_token)";
+
         $sth = $this->pdo->prepare($sql);
         $sth->execute([
-            "name" => $user_dto->name,
-            "email" => $user_dto->email,
+            "name" => $userDto->name,
+            "email" => $userDto->email,
             "pass" => $pass_hash,
-            "verification_token" => $user_dto->token
+            "verification_token" => $userDto->token
         ]);
 
-        return $this->pdo->lastInsertId();
-    }
+        //$user = new User($userDto->name, $userDto->email, $userDto->pass);
 
-    public function check_email(string $email):bool {
+        Mailer::sendVerificationMail($userDto->email, $userDto->name, $userDto->token);
+
+        return (int)$this->pdo->lastInsertId();
+    }
+    public function checkEmail(string $email):bool {
         $sql = "SELECT 1 FROM users WHERE email = :email";
         $sth = $this->pdo->prepare($sql);
         $sth->execute(["email" => $email]);
@@ -37,24 +42,25 @@ class auth
         return $sth->fetch() !== false;
     }
 
-    public function login(string $email, string $password):user {
+    public function login(string $email, string $password):User {
         $sql = "SELECT `id`, `name`, `password` FROM users WHERE email = :email";
         $sth = $this->pdo->prepare($sql);
         $sth->execute(["email" => $email]);
 
         $user = $sth->fetch();
         if (!$user) {
-            throw new Exception("user not found");
+            throw new Exception("User not found");
         }
 
         if (!password_verify($password, $user['password'])) {
             throw new Exception("Invalid password");
         }
 
-        return new user($user['id'], $user['name'], $email);
+        return new User($user['id'], $user['name'], $email);
     }
 
-    public function verifyToken(string $token) {
+    public function verifyToken(string $token):bool
+    {
         $sql = "UPDATE `users` SET `email_verified_at` = NOW(), `verification_token` = NULL WHERE `verification_token` = :token AND `email_verified_at` IS NULL";
         $sth = $this->pdo->prepare($sql);
         $sth->execute(["token" => $token]);

@@ -44,4 +44,12 @@ class Mailer
             echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
         }
     }
+
+    public static function sendVerificationMail(string $email, string $name, string $token) {
+        $link = "localhost:8000" . VERIFY_EMAIL_ROUTE . "?token=" . $token;
+
+        $verification_message = 'Your verification link is ' . $link;
+
+        Mailer::sendMail($email, 'Hello, ' . $name . '!', $verification_message);
+    }
 }

@@ -1,10 +1,12 @@
 <?php
 
 use DTOs\User\RegisterUserDto;
+use JetBrains\PhpStorm\NoReturn;
+use Services\UserService;
 
-class AuthController
+readonly class UserController
 {
-    public function __construct(private Auth $auth) {
+    public function __construct(private UserService $userService) {
         
     }
 
@@ -20,7 +22,7 @@ class AuthController
 
             if (strlen($name) < 3 || strlen($name) > 32) {
                 $message = "Wrong name length\n";
-            } else if (!filter_var($email, FILTER_VALIDATE_EMAIL) || $this->auth->check_email($email)) {
+            } else if (!filter_var($email, FILTER_VALIDATE_EMAIL) || $this->userService->checkEmail($email)) {
                 $message = "Wrong email format\n";
             } else if (strlen($password) < 3 || strlen($password) > 32) {
                 $message = "Wrong password length\n";
@@ -31,13 +33,7 @@ class AuthController
                     $token = bin2hex(random_bytes(20));
                     $new_user_dto = new RegisterUserDto($name, $email, $password, $token);
 
-                    $this->auth->create_user($new_user_dto);
-
-                    $link = "localhost:8000/email-verify?token=" . $token;
-
-                    $verification_message = 'Your verification link is ' . $link;
-
-                    Mailer::sendMail($email, 'Hello, ' . $name . '!', $verification_message);
+                    $this->userService->register($new_user_dto);
 
                     header('Location: /login');
                     exit;
@@ -59,7 +55,7 @@ class AuthController
             $password = $_POST['password'];
 
             try {
-                $user = $this->auth->login($email, $password);
+                $user = $this->userService->login($email, $password);
                 $_SESSION['id'] = $user->id;
                 $_SESSION['name'] = $user->name;
                 header('Location: /dashboard');
@@ -81,6 +77,7 @@ class AuthController
         require __DIR__ . '/../view/Dashboard.php';
     }
 
+    #[NoReturn]
     public function logout(): void {
         $_SESSION = [];
 
@@ -90,6 +87,7 @@ class AuthController
         exit;
     }
 
+    #[NoReturn]
     public function verifyEmail(): bool {
         $token = $_GET['token'] ?? null;
 
@@ -98,7 +96,7 @@ class AuthController
             exit;
         }
 
-        if($this->auth->verifyToken($token)) {
+        if($this->userService->verifyToken($token)) {
             $_SESSION['flash_message'] = "Your email has been verified";
             header('Location: /login');
         }
