@@ -17,12 +17,13 @@ class auth
 
         $pass_hash = password_hash($user_dto->pass, PASSWORD_DEFAULT);
 
-        $sql = "INSERT INTO users (name, email, password) VALUES(:name, :email, :pass)";
-        $stmt = $this->pdo->prepare($sql);
-        $sth = $stmt->execute([
+        $sql = "INSERT INTO users (name, email, password, verification_token) VALUES(:name, :email, :pass, :verification_token)";
+        $sth = $this->pdo->prepare($sql);
+        $sth->execute([
             "name" => $user_dto->name,
             "email" => $user_dto->email,
-            "pass" => $pass_hash
+            "pass" => $pass_hash,
+            "verification_token" => $user_dto->token
         ]);
 
         return $this->pdo->lastInsertId();
@@ -51,5 +52,13 @@ class auth
         }
 
         return new user($user['id'], $user['name'], $email);
+    }
+
+    public function verifyToken(string $token) {
+        $sql = "UPDATE `users` SET `email_verified_at` = NOW(), `verification_token` = NULL WHERE `verification_token` = :token AND `email_verified_at` IS NULL";
+        $sth = $this->pdo->prepare($sql);
+        $sth->execute(["token" => $token]);
+
+        return $sth->rowCount() > 0;
     }
 }

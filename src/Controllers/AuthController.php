@@ -8,8 +8,7 @@ class AuthController
         
     }
 
-    public function register(): void
-    {
+    public function register(): void {
         require __DIR__ . "/../DTOs/User/RegisterUserDto.php";
 
         $message = "";
@@ -26,9 +25,19 @@ class AuthController
             } else if (strlen($password) < 3 || strlen($password) > 32) {
                 $message = "Wrong password length\n";
             } else {
-                $new_user_dto = new RegisterUserDto($name, $email, $password);
                 try {
+                    require_once __DIR__ . '/../Mailer.php';
+
+                    $token = bin2hex(random_bytes(20));
+                    $new_user_dto = new RegisterUserDto($name, $email, $password, $token);
+
                     $this->auth->create_user($new_user_dto);
+
+                    $link = "localhost:8000/email-verify?token=" . $token;
+
+                    $verification_message = 'Your verification link is ' . $link;
+
+                    Mailer::sendMail($email, 'Hello, ' . $name . '!', $verification_message);
 
                     header('Location: /login');
                     exit;
@@ -40,8 +49,7 @@ class AuthController
         require __DIR__ . '/../view/Register.php';
     }
 
-    public function login(): void
-    {
+    public function login(): void {
         require __DIR__ . '/../Models/User.php';
 
         $message = '';
@@ -64,8 +72,7 @@ class AuthController
         require __DIR__ . '/../view/Login.php';
     }
 
-    public function dashboard(): void
-    {
+    public function dashboard(): void {
         if (!isset($_SESSION["id"])) {
             header("Location: /login");
             exit;
@@ -74,13 +81,31 @@ class AuthController
         require __DIR__ . '/../view/Dashboard.php';
     }
 
-    public function logout(): void
-    {
+    public function logout(): void {
         $_SESSION = [];
 
         session_destroy();
 
         header('Location: /login');
+        exit;
+    }
+
+    public function verifyEmail(): bool {
+        $token = $_GET['token'] ?? null;
+
+        if($token == null) {
+            header('Location: /register');
+            exit;
+        }
+
+        if($this->auth->verifyToken($token)) {
+            $_SESSION['flash_message'] = "Your email has been verified";
+            header('Location: /login');
+        }
+        else {
+            $_SESSION['flash_message'] = "Invalid token";
+            header('Location: /register');
+        }
         exit;
     }
 }
