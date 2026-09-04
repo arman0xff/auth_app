@@ -56,10 +56,17 @@ readonly class UserController
 
             try {
                 $user = $this->userService->login($email, $password);
-                $_SESSION['id'] = $user->id;
-                $_SESSION['name'] = $user->name;
-                header('Location: /dashboard');
-                exit;
+
+                if(!$user->isVerified()) {
+                    $message = "Your account is not verified yet";
+                }
+                else {
+                    $_SESSION['id'] = $user->id;
+                    $_SESSION['name'] = $user->name;
+                    $_SESSION['email'] = $user->email;
+                    header('Location: /dashboard');
+                    exit;
+                }
             } catch (Exception $e) {
                 $message = $e->getMessage();
             }
@@ -70,6 +77,7 @@ readonly class UserController
 
     public function dashboard(): void {
         if (!isset($_SESSION["id"])) {
+            $_SESSION["flash_message"] = "You must be logged in to access this page";
             header("Location: /login");
             exit;
         }
@@ -88,7 +96,7 @@ readonly class UserController
     }
 
     #[NoReturn]
-    public function verifyEmail(): bool {
+    public function verifyEmail(): void {
         $token = $_GET['token'] ?? null;
 
         if($token == null) {
