@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD COLUMN `token_updated_at` TIMESTAMP NULL DEFAULT (CURRENT_TIMESTAMP) AFTER `verification_token`;
