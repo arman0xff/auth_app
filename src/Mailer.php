@@ -1,5 +1,7 @@
 <?php
 
+namespace Mailer;
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
@@ -23,7 +25,7 @@ class Mailer
         return $mail;
     }
 
-    public static function sendMail(string $to, string $subject, string $body)
+    public static function sendMail(string $to, string $subject, string $body): void
     {
         $mail = self::getMailer();
 
@@ -45,7 +47,9 @@ class Mailer
         }
     }
 
-    public static function sendVerificationMail(string $email, string $name, string $token) {
+    public static function sendVerificationMail(string $email, string $name, string $token): void {
+        // rate limiting need
+
         $link = "localhost:8000" . VERIFY_EMAIL_ROUTE . "?token=" . $token;
 
         $verification_message = 'Your verification link is ' . $link;

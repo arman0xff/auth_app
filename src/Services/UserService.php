@@ -4,9 +4,11 @@ namespace Services;
 
 use DTOs\User\RegisterUserDto;
 use Exception;
-use Mailer;
+use Mailer\Mailer;
 use PDO;
 use Models\User;
+
+require_once __DIR__ . '/../Mailer.php';
 
 class UserService
 {
@@ -32,7 +34,7 @@ class UserService
 
         return (int)$this->pdo->lastInsertId();
     }
-    public function checkEmail(string $email): bool {
+    public function checkEmailExist(string $email): bool {
         $sql = "SELECT 1 FROM `users` WHERE `email` = :email";
         $sth = $this->pdo->prepare($sql);
         $sth->execute(["email" => $email]);
@@ -60,5 +62,25 @@ class UserService
         $sth->execute(["token" => $token]);
 
         return $sth->rowCount() > 0;
+    }
+
+    public function generateNewToken(string $email): ?string {
+        $token = generateToken();
+        $sql = "UPDATE `users` SET `verification_token` = :token WHERE `email` = :email AND `email_verified_at` IS NULL";
+        $sth = $this->pdo->prepare($sql);
+        $sth->execute(["token" => $token, "email" => $email]);
+
+        return $sth->rowCount() > 0 ? $token : null;
+    }
+
+    public function resendVerificationMail(string $email): bool {
+        $token = $this->generateNewToken($email);
+
+        if($token == null) {
+            return false;
+        }
+
+        Mailer::sendVerificationMail($email, $_SESSION["name"] ?? "Mysterious stranger", $token);
+        return true;
     }
 }

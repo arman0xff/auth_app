@@ -22,18 +22,19 @@ readonly class UserController
 
             if (strlen($name) < 3 || strlen($name) > 32) {
                 $message = "Wrong name length\n";
-            } else if (!filter_var($email, FILTER_VALIDATE_EMAIL) || $this->userService->checkEmail($email)) {
+            } else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $message = "Wrong email format\n";
+            } else if($this->userService->checkEmailExist($email)) {
+                $message = "Email already exists\n";
             } else if (strlen($password) < 3 || strlen($password) > 32) {
                 $message = "Wrong password length\n";
             } else {
                 try {
                     require_once __DIR__ . '/../Mailer.php';
 
-                    $token = bin2hex(random_bytes(20));
-                    $new_user_dto = new RegisterUserDto($name, $email, $password, $token);
+                    $newUserDto = new RegisterUserDto($name, $email, $password, generateToken());
 
-                    $this->userService->register($new_user_dto);
+                    $this->userService->register($newUserDto);
 
                     header('Location: /login');
                     exit;
@@ -77,7 +78,7 @@ readonly class UserController
 
     public function dashboard(): void {
         if (!isset($_SESSION["id"])) {
-            $_SESSION["flash_message"] = "You must be logged in to access this page";
+            $_SESSION["message"] = "You must be logged in to access this page";
             header("Location: /login");
             exit;
         }
@@ -105,13 +106,34 @@ readonly class UserController
         }
 
         if($this->userService->verifyToken($token)) {
-            $_SESSION['flash_message'] = "Your email has been verified";
+            $message = "Your email has been verified";
             header('Location: /login');
         }
         else {
-            $_SESSION['flash_message'] = "Invalid token";
+            $message = "Invalid token";
             header('Location: /register');
         }
+        exit;
+    }
+
+    public function resendMail(): void {
+        $message = '';
+
+        if($_SERVER["REQUEST_METHOD"] == "POST") {
+            $email = $_POST["email"];
+
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $message = "Wrong email format";
+            }
+            else if ($this->userService->resendVerificationMail($email)) {
+                $message = "Email successfully sent";
+            } else {
+                $message = "Email not sent (some error occurred)";
+            }
+        }
+
+        require __DIR__ . '/../view/ResendMail.php';
+
         exit;
     }
 }
