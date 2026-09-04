@@ -6,7 +6,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../src/DBConnection.php';
 require_once __DIR__ . '/../src/Services/UserService.php';
 require_once __DIR__ . '/../src/Controllers/UserController.php';
-require_once __DIR__ . '/../src/helpers.php';
+require_once __DIR__ . '/../src/Helpers.php';
 
 $userController = new UserController(new UserService($pdo));
 

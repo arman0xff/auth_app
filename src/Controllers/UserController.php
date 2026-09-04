@@ -43,7 +43,7 @@ readonly class UserController
                 }
             }
         }
-        require __DIR__ . '/../view/Register.php';
+        require __DIR__ . '/../Views/Register.php';
     }
 
     public function login(): void {
@@ -73,7 +73,7 @@ readonly class UserController
             }
         }
 
-        require __DIR__ . '/../view/Login.php';
+        require __DIR__ . '/../Views/Login.php';
     }
 
     public function dashboard(): void {
@@ -83,7 +83,7 @@ readonly class UserController
             exit;
         }
 
-        require __DIR__ . '/../view/Dashboard.php';
+        require __DIR__ . '/../Views/Dashboard.php';
     }
 
     #[NoReturn]
@@ -132,7 +132,7 @@ readonly class UserController
             }
         }
 
-        require __DIR__ . '/../view/ResendMail.php';
+        require __DIR__ . '/../Views/ResendMail.php';
 
         exit;
     }
