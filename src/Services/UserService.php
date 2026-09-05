@@ -18,21 +18,24 @@ class UserService
     public function register(RegisterUserDto $userDto): int {
         $pass_hash = password_hash($userDto->pass, PASSWORD_DEFAULT);
 
-        $sql = "INSERT INTO `users` (name, email, password, verification_token) VALUES(:name, :email, :pass, :verification_token)";
+        $sql = "INSERT INTO `users` (name, email, password) VALUES(:name, :email, :pass)";
 
         $sth = $this->pdo->prepare($sql);
         $sth->execute([
             "name" => $userDto->name,
             "email" => $userDto->email,
-            "pass" => $pass_hash,
-            "verification_token" => $userDto->token
+            "pass" => $pass_hash
         ]);
 
         //$user = new User($userDto->name, $userDto->email, $userDto->pass);
 
+        $userId = (int)$this->pdo->lastInsertId();
+
+        $this->createUserVerificationToken($userId, $userDto->token);
+
         Mailer::sendVerificationMail($userDto->email, $userDto->name, $userDto->token);
 
-        return (int)$this->pdo->lastInsertId();
+        return $userId;
     }
     public function checkEmailExist(string $email): bool {
         $sql = "SELECT 1 FROM `users` WHERE `email` = :email";
@@ -55,22 +58,67 @@ class UserService
         return new User((int)$user['id'], $user['name'], $email, $user['email_verified_at']);
     }
 
-    public function verifyToken(string $token): bool
-    {
-        $sql = "UPDATE `users` SET `email_verified_at` = NOW(), `verification_token` = NULL WHERE `verification_token` = :token AND `email_verified_at` IS NULL";
-        $sth = $this->pdo->prepare($sql);
-        $sth->execute(["token" => $token]);
+    public function verifyToken(string $token): bool {
+        try {
+            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        return $sth->rowCount() > 0;
+            $this->pdo->beginTransaction();
+            $sql = "UPDATE `users` JOIN `user_tokens` ON `users`.`id` = `user_tokens`.`user_id` SET `users`.`email_verified_at` = NOW() WHERE `user_tokens`.`token` = :token 
+                AND `user_tokens`.`type` = 'email_verify' AND `users`.`email_verified_at` IS NULL AND `user_tokens`.`token_sent_at` > NOW() - INTERVAL 1 HOUR";
+
+            $sth = $this->pdo->prepare($sql);
+            $sth->execute(["token" => $token]);
+
+            $result = $sth->rowCount() > 0;
+
+            if($result == 0) {
+                $this->pdo->rollBack();
+                return false;
+            }
+
+            $sql = "DELETE FROM `user_tokens` WHERE `token` = :token AND `type` = 'email_verify'";
+            $sth = $this->pdo->prepare($sql);
+            $sth->execute(["token" => $token]);
+
+            $this->pdo->commit();
+            return $result;
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
     }
 
     public function generateNewToken(string $email): ?string {
         $token = generateToken();
-        $sql = "UPDATE `users` SET `verification_token` = :token WHERE `email` = :email AND `email_verified_at` IS NULL";
-        $sth = $this->pdo->prepare($sql);
-        $sth->execute(["token" => $token, "email" => $email]);
 
-        return $sth->rowCount() > 0 ? $token : null;
+        try {
+            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $this->pdo->beginTransaction();
+
+            $sql = "INSERT INTO `user_tokens` (user_id, token, type) SELECT `id`, :token, 'email_verify' FROM `users` WHERE `email` = :email AND `email_verified_at` IS NULL 
+                AND NOT EXISTS(SELECT 1 FROM `user_tokens` WHERE `user_id` = `users`.`id` AND `type` = 'email_verify' AND `token_sent_at` > NOW() - INTERVAL 1 MINUTE)";
+    
+            $sth = $this->pdo->prepare($sql);
+            $sth->execute(["token" => $token, "email" => $email]);
+
+            $result = $sth->rowCount() > 0;
+
+            if($result == 0) {
+                $this->pdo->rollBack();
+                return null;
+            }
+
+            $sql = "DELETE `user_tokens` FROM `user_tokens` JOIN `users` ON `user_tokens`.`user_id` = `users`.`id` 
+                WHERE `users`.`email` = :email AND `user_tokens`.`token` != :curr_token AND `user_tokens`.`type` = 'email_verify'";
+            $sth = $this->pdo->prepare($sql);
+            $sth->execute(["email" => $email, "curr_token" => $token]);
+
+            $this->pdo->commit();
+            return $token;
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
     }
 
     public function resendVerificationMail(string $email): bool {
@@ -82,5 +130,13 @@ class UserService
 
         Mailer::sendVerificationMail($email, $_SESSION["name"] ?? "Mysterious stranger", $token);
         return true;
+    }
+
+    //
+
+    public function createUserVerificationToken(int $userId, string $token): bool {
+        $sql = "INSERT INTO `user_tokens` (user_id, token, type) VALUES (:user_id, :token, 'email_verify')";
+        $sth = $this->pdo->prepare($sql);
+        return $sth->execute(["user_id" => $userId, "token" => $token]);
     }
 }
