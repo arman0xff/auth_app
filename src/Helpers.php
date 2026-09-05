@@ -11,3 +11,9 @@ function generateToken(): string {
 
 const VERIFY_EMAIL_ROUTE = '/verify-email';
 const RESEND_MAIL_ROUTE = '/resend-mail';
+
+enum E_RESEND_MAIL_RETURN_CODES {
+    case Success;
+    case RateLimit;
+    case NotFound;
+}

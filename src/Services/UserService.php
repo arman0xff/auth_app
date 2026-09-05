@@ -7,6 +7,7 @@ use Exception;
 use Mailer\Mailer;
 use PDO;
 use Models\User;
+use E_RESEND_MAIL_RETURN_CODES;
 
 require_once __DIR__ . '/../Mailer.php';
 
@@ -88,12 +89,27 @@ class UserService
         }
     }
 
-    public function generateNewToken(string $email): ?string {
+    public function generateNewToken(string $email): array {
         $token = generateToken();
 
         try {
             $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->pdo->beginTransaction();
+
+            $sql = "SELECT NULL AS token_sent_at FROM `user_tokens` JOIN `users` ON `user_tokens`.`user_id` = `users`.`id` WHERE `email` = :email 
+                AND `token_sent_at` > NOW() - INTERVAL 1 MINUTE AND `type` = 'email_verify'";
+            $sth = $this->pdo->prepare($sql);
+            $sth->execute(["email" => $email]);
+
+            $result = $sth->fetch();
+            
+            if(!empty($result)) {
+                $this->pdo->rollBack();
+
+                return [
+                    'status' => E_RESEND_MAIL_RETURN_CODES::RateLimit
+                ];
+            }
 
             $sql = "INSERT INTO `user_tokens` (user_id, token, type) SELECT `id`, :token, 'email_verify' FROM `users` WHERE `email` = :email AND `email_verified_at` IS NULL 
                 AND NOT EXISTS(SELECT 1 FROM `user_tokens` WHERE `user_id` = `users`.`id` AND `type` = 'email_verify' AND `token_sent_at` > NOW() - INTERVAL 1 MINUTE)";
@@ -105,7 +121,8 @@ class UserService
 
             if($result == false) {
                 $this->pdo->rollBack();
-                return null;
+
+                return ['status' => E_RESEND_MAIL_RETURN_CODES::NotFound];
             }
 
             $sql = "DELETE `user_tokens` FROM `user_tokens` JOIN `users` ON `user_tokens`.`user_id` = `users`.`id` 
@@ -114,22 +131,24 @@ class UserService
             $sth->execute(["email" => $email, "curr_token" => $token]);
 
             $this->pdo->commit();
-            return $token;
+            return [
+                'status' => E_RESEND_MAIL_RETURN_CODES::Success, 
+                'token' => $token
+            ];
         } catch (Exception $e) {
             $this->pdo->rollBack();
             throw $e;
         }
     }
 
-    public function resendVerificationMail(string $email): bool {
-        $token = $this->generateNewToken($email);
+    public function resendVerificationMail(string $email): array {
+        $resultArr = $this->generateNewToken($email);
 
-        if($token == null) {
-            return false;
+        if($resultArr['status'] == E_RESEND_MAIL_RETURN_CODES::Success) {
+            Mailer::sendVerificationMail($email, $_SESSION["name"] ?? "Mysterious stranger", $resultArr['token']);
         }
 
-        Mailer::sendVerificationMail($email, $_SESSION["name"] ?? "Mysterious stranger", $token);
-        return true;
+        return $resultArr;
     }
 
     //

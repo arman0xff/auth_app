@@ -56,7 +56,7 @@ readonly class UserController
     public function login(): void {
         require __DIR__ . '/../Models/User.php';
 
-        $message = '';
+        $message = "";
         $success = $_SESSION['message'] ?? null;
         unset($_SESSION['message']);
 
@@ -83,6 +83,8 @@ readonly class UserController
     }
 
     public function dashboard(): void {
+        $message = "";
+
         if (!isset($_SESSION["id"])) {
             $message = "You must be logged in to access this page";
         }
@@ -93,7 +95,6 @@ readonly class UserController
         require __DIR__ . '/../Views/Dashboard.php';
     }
 
-    #[NoReturn]
     public function logout(): void {
         $_SESSION = [];
 
@@ -103,7 +104,6 @@ readonly class UserController
         exit;
     }
 
-    #[NoReturn]
     public function verifyEmail(): void {
         $token = $_GET['token'] ?? null;
 
@@ -130,19 +130,31 @@ readonly class UserController
     }
 
     public function resendMail(): void {
-        $error = '';
-        $success = '';
+        $error = "";
+        $success = "";
 
         if($_SERVER["REQUEST_METHOD"] == "POST") {
-            $email = $_POST["email"];
+            $email = $_POST["email"] ?? null;
 
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            if($email == null) {
+                $error = "Email is required";
+            }
+            else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $error = "Wrong email format";
             }
-            else if ($this->userService->resendVerificationMail($email)) {
-                $success = "Email successfully sent";
-            } else {
-                $error = "Email not sent (some error occurred)";
+            else {
+                $resultArr = $this->userService->resendVerificationMail($email);
+
+                if($resultArr['status'] == E_RESEND_MAIL_RETURN_CODES::Success) {
+                    $success = "Email successfully sent";
+                }
+                else {
+                    $error = match($resultArr['status']) {
+                        E_RESEND_MAIL_RETURN_CODES::NotFound => "Email not sent (some error occurred)",
+                        E_RESEND_MAIL_RETURN_CODES::RateLimit => "You need to wait about 60 seconds, after sending new email",
+                        default => "Email not sent (some error occurred)",
+                    };
+                }
             }
         }
 

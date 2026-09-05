@@ -12,7 +12,7 @@
 
             <?php if(!isset($_SESSION["id"]) || !isset($_SESSION["email_verified_at"]) || $_SESSION["email_verified_at"] == null) {?>
                   <p class="auth-switch">
-                        <?php echo $message; ?> <a href="/login" class="router-link">Go to login page</a>
+                        <?php echo !empty($message) ? $message : "Some error occured"; ?> <a href="/login" class="router-link">Go to login page</a>
                   </p>
             <?php } else { ?>
                   <table>
