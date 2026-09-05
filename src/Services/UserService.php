@@ -103,7 +103,7 @@ class UserService
 
             $result = $sth->rowCount() > 0;
 
-            if($result == 0) {
+            if($result == false) {
                 $this->pdo->rollBack();
                 return null;
             }

@@ -11,7 +11,7 @@ class Mailer
     private static function getMailer(): PHPMailer
     {
         $mail = new PHPMailer(true);
-        $mail->SMTPDebug = SMTP::DEBUG_SERVER;
+        $mail->SMTPDebug = 0;
 
         $mail->isSMTP();
         $mail->Host = 'sandbox.smtp.mailtrap.io';
@@ -40,7 +40,6 @@ class Mailer
             $mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
 
             $mail->send();
-            echo 'Message has been sent';
         } catch
         (Exception $e) {
             echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
@@ -48,8 +47,6 @@ class Mailer
     }
 
     public static function sendVerificationMail(string $email, string $name, string $token): void {
-        // rate limiting need
-
         $link = "localhost:8000" . VERIFY_EMAIL_ROUTE . "?token=" . $token;
 
         $verification_message = 'Your verification link is ' . $link;

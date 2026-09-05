@@ -1,18 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
-<link rel="stylesheet"
-      href="/style.css">
+<head>
+    <meta charset="UTF-8">
+    <title>Registration</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
 <body>
-    <?php if ($message): ?>
-        <p style="color: red;"><?= $message ?></p>
-    <?php endif; ?>
-
     <form method="post" action="/register">
-        <label> Name: <input type="text" id="name" name="name" required><br><br> </label>
-        <label> Email: <input type="email" id="email" name="email" required><br><br></label>
-        <label> Password: <input type="password" id="password" name="password" required><br><br> </label>
+        <h2>Registration</h2>
+
+        <div class="form-group">
+            <label> Name</label>
+            <input type="text" name="name" id="name" placeholder="Arman Vardanyan" required>
+            <?php if (!empty($errors['name'])) { ?>
+                <span class="error"><?php echo $errors['name']; ?></span>
+            <?php } ?>
+        </div>
+
+        <div class="form-group">
+            <label> Email</label>
+            <input type="email" name="email" id="email" placeholder="arman@email.com" required>
+            <?php if (!empty($errors['email'])) { ?>
+                <span class="error"><?php echo $errors['email']; ?></span>
+            <?php } ?>
+        </div>
+
+        <div class="form-group">
+            <label> Password</label>
+            <input type="password" id="password" name="password" placeholder="******" required>
+            <?php if (!empty($errors['password'])) { ?>
+                <span class="error"><?php echo $errors['password']; ?></span>
+            <?php } ?>
+        </div>
+
+        <p class="auth-switch">
+            Already have an account? <a class="router-link" href="/login">Login</a>
+        </p>
 
         <button type="submit">Register</button>
+
+        <?php if(!empty($errors['button'])) { ?>
+            <span class="error"><?php echo $errors['button']; ?></span>
+        <?php } ?>
     </form>
 </body>
 </html>

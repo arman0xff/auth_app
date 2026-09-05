@@ -13,7 +13,8 @@ readonly class UserController
     public function register(): void {
         require __DIR__ . "/../DTOs/User/RegisterUserDto.php";
 
-        $message = "";
+        $errors = [];
+        $_SESSION['message'] = "";
 
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $name = $_POST['name'];
@@ -21,25 +22,31 @@ readonly class UserController
             $password = $_POST['password'];
 
             if (strlen($name) < 3 || strlen($name) > 32) {
-                $message = "Wrong name length\n";
+                $errors['name'] = "Wrong name length\n";
             } else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                $message = "Wrong email format\n";
+                $errors['email'] = "Wrong email format\n";
             } else if($this->userService->checkEmailExist($email)) {
-                $message = "Email already exists\n";
+                $errors['email'] = "Email already exists\n";
             } else if (strlen($password) < 3 || strlen($password) > 32) {
-                $message = "Wrong password length\n";
+                $errors['password'] = "Wrong password length\n";
             } else {
                 try {
                     require_once __DIR__ . '/../Mailer.php';
+
+                    $_SESSION = [];
+
+                    session_destroy();
 
                     $newUserDto = new RegisterUserDto($name, $email, $password, generateToken());
 
                     $this->userService->register($newUserDto);
 
+                    $_SESSION['message'] = "Account successfully registered. Please check your email to verify your account.";
+
                     header('Location: /login');
                     exit;
                 } catch (Exception $e) {
-                    $message = "Account doesnt registered";
+                    $errors['button'] = "Account doesn't registered";
                 }
             }
         }
@@ -50,6 +57,8 @@ readonly class UserController
         require __DIR__ . '/../Models/User.php';
 
         $message = '';
+        $success = $_SESSION['message'] ?? null;
+        unset($_SESSION['message']);
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $email = $_POST['email'];
@@ -58,16 +67,13 @@ readonly class UserController
             try {
                 $user = $this->userService->login($email, $password);
 
-                if(!$user->isVerified()) {
-                    $message = "Your account is not verified yet";
-                }
-                else {
-                    $_SESSION['id'] = $user->id;
-                    $_SESSION['name'] = $user->name;
-                    $_SESSION['email'] = $user->email;
-                    header('Location: /dashboard');
-                    exit;
-                }
+                $_SESSION['id'] = $user->id;
+                $_SESSION['name'] = $user->name;
+                $_SESSION['email'] = $user->email;
+                $_SESSION['email_verified_at'] = $user->emailVerifiedAt;
+
+                header('Location: /dashboard');
+                exit;
             } catch (Exception $e) {
                 $message = $e->getMessage();
             }
@@ -78,9 +84,10 @@ readonly class UserController
 
     public function dashboard(): void {
         if (!isset($_SESSION["id"])) {
-            $_SESSION["message"] = "You must be logged in to access this page";
-            header("Location: /login");
-            exit;
+            $message = "You must be logged in to access this page";
+        }
+        else if(!isset($_SESSION["email_verified_at"]) || $_SESSION["email_verified_at"] == null) {
+            $message = "You must verify your email to access this page";
         }
 
         require __DIR__ . '/../Views/Dashboard.php';
@@ -106,8 +113,14 @@ readonly class UserController
         }
 
         if($this->userService->verifyToken($token)) {
-            $message = "Your email has been verified";
-            header('Location: /login');
+            $_SESSION['message'] = "Your email has been verified.";
+            
+            if($_SESSION['id']) {
+                header('Location: /dashboard');
+            }
+            else {
+                header('Location: /login');
+            }
         }
         else {
             $message = "Invalid token";
@@ -117,18 +130,19 @@ readonly class UserController
     }
 
     public function resendMail(): void {
-        $message = '';
+        $error = '';
+        $success = '';
 
         if($_SERVER["REQUEST_METHOD"] == "POST") {
             $email = $_POST["email"];
 
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                $message = "Wrong email format";
+                $error = "Wrong email format";
             }
             else if ($this->userService->resendVerificationMail($email)) {
-                $message = "Email successfully sent";
+                $success = "Email successfully sent";
             } else {
-                $message = "Email not sent (some error occurred)";
+                $error = "Email not sent (some error occurred)";
             }
         }
 

@@ -6,25 +6,30 @@
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <div class="card">
-        <h1>Login</h1>
-        <?php if ($message): ?>
-            <p style="color: red;"><?= $message ?></p>
-        <?php endif; ?>
+    <form method="post" action="/login">
+        <h2>Login</h2>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+        </div>
 
-        <form method="POST" action="/login">
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <button type="submit">Login</button>
-        </form>
+        <?php if(!empty($message)) { ?>
+            <span class="error"><?php echo $message; ?></span>
+        <?php } ?>
 
-        <a class="link" href="/register">Register</a>
-    </div>
+        <?php if(isset($success)) { ?>
+            <span class="success"><?php echo $success; ?></span>
+        <?php } else {?>
+            <p class="auth-switch">
+                Don't have an account? <a class="router-link" href="/register">Register</a>
+            </p>
+        <?php } ?>
+
+        <button type="submit">Login</button>
+    </form>
 </body>
 </html>

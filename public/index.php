@@ -34,7 +34,7 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
         $userController->verifyEmail();
         break;
     }
-    case '/resend-mail': {
+    case RESEND_MAIL_ROUTE: {
         $userController->resendMail();
         break;
     }
