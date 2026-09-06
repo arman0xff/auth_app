@@ -2,8 +2,6 @@
 
 namespace Interfaces;
 
-use DTOs\User\RegisterUserDto;
-
 interface IUserRepository {
     public function create(string $name, string $email, string $pass_hash);
     public function checkEmailExist(string $email);

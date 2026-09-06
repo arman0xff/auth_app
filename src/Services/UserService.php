@@ -9,8 +9,6 @@ use Models\User;
 use E_RESEND_MAIL_RETURN_CODES;
 use Interfaces\IUserRepository;
 
-require_once __DIR__ . '/../Interfaces/IUserRepository.php';
-
 class UserService
 {
     public function __construct(private IUserRepository $userRepo) {

@@ -1,8 +1,11 @@
 <?php
 
+namespace Controllers;
+
 use DTOs\User\RegisterUserDto;
 use Services\UserService;
-
+use Exception;
+use E_RESEND_MAIL_RETURN_CODES;
 readonly class UserController
 {
     public function __construct(private UserService $userService) {
@@ -10,7 +13,7 @@ readonly class UserController
     }
 
     public function register(): void {
-        require __DIR__ . "/../DTOs/User/RegisterUserDto.php";
+        require_once __DIR__ . "/../DTOs/User/RegisterUserDto.php";
 
         $errors = [];
         $_SESSION['message'] = "";
@@ -34,8 +37,6 @@ readonly class UserController
 
                     $_SESSION = [];
 
-                    session_destroy();
-
                     $newUserDto = new RegisterUserDto($name, $email, $password);
 
                     $this->userService->register($newUserDto);
@@ -49,11 +50,11 @@ readonly class UserController
                 }
             }
         }
-        require __DIR__ . '/../Views/Register.php';
+        require_once __DIR__ . '/../Views/Register.php';
     }
 
     public function login(): void {
-        require __DIR__ . '/../Models/User.php';
+        require_once __DIR__ . '/../Models/User.php';
 
         $message = "";
         $success = $_SESSION['message'] ?? null;
@@ -78,7 +79,7 @@ readonly class UserController
             }
         }
 
-        require __DIR__ . '/../Views/Login.php';
+        require_once __DIR__ . '/../Views/Login.php';
     }
 
     public function dashboard(): void {
@@ -91,7 +92,7 @@ readonly class UserController
             $message = "You must verify your email to access this page";
         }
 
-        require __DIR__ . '/../Views/Dashboard.php';
+        require_once __DIR__ . '/../Views/Dashboard.php';
     }
 
     public function logout(): void {
@@ -157,7 +158,7 @@ readonly class UserController
             }
         }
 
-        require __DIR__ . '/../Views/ResendMail.php';
+        require_once __DIR__ . '/../Views/ResendMail.php';
 
         exit;
     }
