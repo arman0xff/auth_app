@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <form method="post" action="/register">
+    <form method="post" action="<?php echo REGISTER_USER_ROUTE?>">
         <h2>Registration</h2>
 
         <div class="form-group">
@@ -33,11 +33,11 @@
             <?php } ?>
         </div>
 
-        <p class="auth-switch">
-            Already have an account? <a class="router-link" href="/login">Login</a>
-        </p>
-
         <button type="submit">Register</button>
+
+        <p class="auth-switch">
+            Already have an account? <a class="router-link" href="<?php echo LOGIN_USER_ROUTE?>">Login</a>
+        </p>
 
         <?php if(!empty($errors['button'])) { ?>
             <span class="error"><?php echo $errors['button']; ?></span>

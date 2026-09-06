@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <form method="post" action="/login">
+    <form method="post" action="<?php echo LOGIN_USER_ROUTE?>">
         <h2>Login</h2>
         <div class="form-group">
             <label for="email">Email</label>
@@ -15,6 +15,7 @@
         <div class="form-group">
             <label for="password">Password</label>
             <input type="password" id="password" name="password" required>
+            <a class="router-link2" href="<?php echo FORGET_PASSWORD_ROUTE?>">Forget password?</a>
         </div>
 
         <?php if(!empty($message)) { ?>
@@ -23,13 +24,15 @@
 
         <?php if(isset($success)) { ?>
             <span class="success"><?php echo $success; ?></span>
-        <?php } else {?>
-            <p class="auth-switch">
-                Don't have an account? <a class="router-link" href="/register">Register</a>
-            </p>
-        <?php } ?>
+        <?php }?>
 
         <button type="submit">Login</button>
+
+        <?php if(!isset($success) || !strlen($success)) { ?>
+            <p class="auth-switch">
+                Don't have an account? <a class="router-link" href="<?php echo REGISTER_USER_ROUTE?>">Register</a>
+            </p>
+        <?php } ?>
     </form>
 </body>
 </html>

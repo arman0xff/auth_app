@@ -21,19 +21,19 @@ session_start();
 
 switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
     case '/':
-    case '/register': {
+    case REGISTER_USER_ROUTE: {
         $userController->register();
         break;
     }
-    case '/login': {
+    case LOGIN_USER_ROUTE: {
         $userController->login();
         break;
     }
-    case '/dashboard': {
+    case DASHBOARD_USER_ROUTE: {
         $userController->dashboard();
         break;
     }
-    case '/logout': {
+    case LOGOUT_USER_ROUTE: {
         $userController->logout();
         break;
     }
@@ -43,6 +43,14 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
     }
     case RESEND_MAIL_ROUTE: {
         $userController->resendMail();
+        break;
+    }
+    case FORGET_PASSWORD_ROUTE: {
+        $userController->forgetPassword();
+        break;
+    }
+    case RESET_PASSWORD_ROUTE: {
+        $userController->resetPassword();
         break;
     }
 }

@@ -6,11 +6,10 @@ use DTOs\User\RegisterUserDto;
 use Exception;
 use Mailer\Mailer;
 use Models\User;
-use E_RESEND_MAIL_RETURN_CODES;
+use E_SEND_MAIL_RETURN_CODES;
 use Interfaces\IUserRepository;
 
-class UserService
-{
+readonly class UserService {
     public function __construct(private IUserRepository $userRepo) {
     }
 
@@ -20,7 +19,7 @@ class UserService
 
         $userId = $this->userRepo->create($userDto->name, $userDto->email, $pass_hash);
 
-        $this->createUserVerificationToken($userId, $userToken);
+        $this->userRepo->createUserToken($userId, $userToken, 'email_verify');
 
         require_once __DIR__ . '/../Mailer.php';
 
@@ -31,6 +30,28 @@ class UserService
 
     public function checkEmailExist(string $email): bool {
         return $this->userRepo->checkEmailExist($email);
+    }
+
+    public function getIdByEmail(string $email): ?int {
+        return $this->userRepo->getIdByEmail($email);
+    }
+
+    public function validatePassword(string $password): bool {
+        return strlen($password) >= ACCOUNT_REG_MIN_PASS_LEN && strlen($password) <= ACCOUNT_REG_MAX_PASS_LEN;
+    }
+
+    public function updatePassword(string $token, string $password): bool {
+        if(!$this->validatePassword($password)) {
+            throw new Exception("Wrong password length");
+        }
+    
+        $result = $this->userRepo->updatePassword($token, password_hash($password, PASSWORD_DEFAULT));
+    
+        if($result) {
+            $this->userRepo->deleteToken($token);
+        }
+
+        return $result;
     }
 
     public function login(string $email, string $password): User {
@@ -49,18 +70,19 @@ class UserService
         return $user;
     }
 
-    public function verifyToken(string $token): bool {
-        return $this->userRepo->verifyToken($token);
+    public function update(string $email): int {
+        return $this->userRepo->getIdByEmail($email);
     }
 
-    public function generateNewToken(string $email): array {
-        return $this->userRepo->generateNewToken($email);
+    // tokens
+
+    public function verifyEmailVerificationToken(string $token): bool {
+        return $this->userRepo->verifyEmailVerificationToken($token);
     }
 
     public function resendVerificationMail(string $email): array {
-        $resultArr = $this->generateNewToken($email);
-
-        if($resultArr['status'] == E_RESEND_MAIL_RETURN_CODES::Success) {
+        $resultArr = $this->userRepo->generateNewToken($email, 'email_verify');
+        if($resultArr['status'] == E_SEND_MAIL_RETURN_CODES::Success) {
             require_once __DIR__ . '/../Mailer.php';
             Mailer::sendVerificationMail($email, $_SESSION["name"] ?? "Mysterious stranger", $resultArr['token']);
         }
@@ -68,9 +90,18 @@ class UserService
         return $resultArr;
     }
 
-    //
+    public function sendResetPasswordMail(int $userId, string $email): array {
+        $resultArr = $this->userRepo->generateNewToken($email, 'pass_reset');
 
-    public function createUserVerificationToken(int $userId, string $token): bool {
-        return $this->userRepo->createUserVerificationToken($userId, $token);
+        if($resultArr['status'] == E_SEND_MAIL_RETURN_CODES::Success) {
+            require_once __DIR__ . '/../Mailer.php';
+            Mailer::sendResetPasswordMail($email, $_SESSION["name"] ?? "Mysterious stranger", $resultArr['token']);
+        }
+
+        return $resultArr;
+    }
+
+    public function verifyResetPasswordToken(string $token): bool {
+        return $this->userRepo->verifyResetPasswordToken($token);
     }
 }

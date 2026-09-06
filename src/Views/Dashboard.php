@@ -7,12 +7,12 @@
       <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-      <form method="post" action="/dashboard">
+      <form method="post" action="<?php echo DASHBOARD_USER_ROUTE?>">
             <h2>Dashboard</h2>
 
             <?php if(!isset($_SESSION["id"]) || !isset($_SESSION["email_verified_at"]) || $_SESSION["email_verified_at"] == null) {?>
                   <p class="auth-switch">
-                        <?php echo !empty($message) ? $message : "Some error occured"; ?> <a href="/login" class="router-link">Go to login page</a>
+                        <?php echo !empty($message) ? $message : "Some error occured"; ?> <a href="<?php echo LOGIN_USER_ROUTE?>" class="router-link">Go to login page</a>
                   </p>
             <?php } else { ?>
                   <table>
@@ -30,7 +30,7 @@
                         </tr>
                   </table>
 
-                  <a href="/logout" class="router-button">Logout</a>
+                  <a href="<?php echo LOGOUT_USER_ROUTE?>" class="router-button">Logout</a>
             <?php } ?>
       </form>
 </body>

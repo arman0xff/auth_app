@@ -6,10 +6,8 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
-class Mailer
-{
-    private static function getMailer(): PHPMailer
-    {
+class Mailer {
+    private static function getMailer(): PHPMailer {
         $mail = new PHPMailer(true);
         $mail->SMTPDebug = 0;
 
@@ -17,16 +15,15 @@ class Mailer
         $mail->Host = 'sandbox.smtp.mailtrap.io';
         $mail->SMTPAuth = true;
         $mail->Port = 2525;
-        $mail->Username = '782e3128ea9335';
-        $mail->Password = '2a6546011da3a4';
+        $mail->Username = '718da415b0d613';
+        $mail->Password = '7ef95be6005f69';
 
         $mail->setFrom('from@example.com', 'Mailer');
 
         return $mail;
     }
 
-    public static function sendMail(string $to, string $subject, string $body): void
-    {
+    public static function sendMail(string $to, string $subject, string $body): void {
         $mail = self::getMailer();
 
         try {
@@ -50,6 +47,14 @@ class Mailer
         $link = "localhost:8000" . VERIFY_EMAIL_ROUTE . "?token=" . $token;
 
         $verification_message = 'Your verification link is ' . $link;
+
+        Mailer::sendMail($email, 'Hello, ' . $name . '!', $verification_message);
+    }
+
+    public static function sendResetPasswordMail(string $email, string $name, string $token): void {
+        $link = "localhost:8000" . RESET_PASSWORD_ROUTE . "?token=" . $token;
+
+        $verification_message = 'Your pass reset link is ' . $link;
 
         Mailer::sendMail($email, 'Hello, ' . $name . '!', $verification_message);
     }
