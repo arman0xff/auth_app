@@ -1,14 +1,18 @@
 <?php
 
 use Services\UserService;
+use Repositories\UserRepository;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../src/DBConnection.php';
 require_once __DIR__ . '/../src/Services/UserService.php';
 require_once __DIR__ . '/../src/Controllers/UserController.php';
 require_once __DIR__ . '/../src/Helpers.php';
+require_once __DIR__ . '/../src/Repository/UserRepository.php';
 
-$userController = new UserController(new UserService($pdo));
+$userRepo = new UserRepository($pdo);
+$userService = new UserService($userRepo);
+$userController = new UserController($userService);
 
 session_start();
 

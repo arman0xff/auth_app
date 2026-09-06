@@ -5,146 +5,65 @@ namespace Services;
 use DTOs\User\RegisterUserDto;
 use Exception;
 use Mailer\Mailer;
-use PDO;
 use Models\User;
 use E_RESEND_MAIL_RETURN_CODES;
+use Interfaces\IUserRepository;
 
-require_once __DIR__ . '/../Mailer.php';
+require_once __DIR__ . '/../Interfaces/IUserRepository.php';
 
 class UserService
 {
-    public function __construct(private PDO $pdo) {
+    public function __construct(private IUserRepository $userRepo) {
     }
 
     public function register(RegisterUserDto $userDto): int {
+        $userToken = generateToken();
         $pass_hash = password_hash($userDto->pass, PASSWORD_DEFAULT);
 
-        $sql = "INSERT INTO `users` (name, email, password) VALUES(:name, :email, :pass)";
+        $userId = $this->userRepo->create($userDto->name, $userDto->email, $pass_hash);
 
-        $sth = $this->pdo->prepare($sql);
-        $sth->execute([
-            "name" => $userDto->name,
-            "email" => $userDto->email,
-            "pass" => $pass_hash
-        ]);
+        $this->createUserVerificationToken($userId, $userToken);
 
-        //$user = new User($userDto->name, $userDto->email, $userDto->pass);
+        require_once __DIR__ . '/../Mailer.php';
 
-        $userId = (int)$this->pdo->lastInsertId();
-
-        $this->createUserVerificationToken($userId, $userDto->token);
-
-        Mailer::sendVerificationMail($userDto->email, $userDto->name, $userDto->token);
+        Mailer::sendVerificationMail($userDto->email, $userDto->name, $userToken);
 
         return $userId;
     }
-    public function checkEmailExist(string $email): bool {
-        $sql = "SELECT 1 FROM `users` WHERE `email` = :email";
-        $sth = $this->pdo->prepare($sql);
-        $sth->execute(["email" => $email]);
 
-        return $sth->fetch() !== false;
+    public function checkEmailExist(string $email): bool {
+        return $this->userRepo->checkEmailExist($email);
     }
 
     public function login(string $email, string $password): User {
-        $sql = "SELECT `id`, `name`, `password`, `email_verified_at` FROM `users` WHERE `email` = :email";
-        $sth = $this->pdo->prepare($sql);
-        $sth->execute(["email" => $email]);
+        $resArray = $this->userRepo->findByEmail($email);
 
-        $user = $sth->fetch();
-        if (!$user || !password_verify($password, $user['password'])) {
+        if($resArray == null) {
             throw new Exception("Invalid email or password");
         }
 
-        return new User((int)$user['id'], $user['name'], $email, $user['email_verified_at']);
+        $user = new User((int)$resArray['id'], $resArray['name'], $email, $resArray['password'], $resArray['email_verified_at']);
+
+        if (!$user || !password_verify($password, $user->password)) {
+            throw new Exception("Invalid email or password");
+        }
+
+        return $user;
     }
 
     public function verifyToken(string $token): bool {
-        try {
-            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-            $this->pdo->beginTransaction();
-            $sql = "UPDATE `users` JOIN `user_tokens` ON `users`.`id` = `user_tokens`.`user_id` SET `users`.`email_verified_at` = NOW() WHERE `user_tokens`.`token` = :token 
-                AND `user_tokens`.`type` = 'email_verify' AND `users`.`email_verified_at` IS NULL AND `user_tokens`.`token_sent_at` > NOW() - INTERVAL 1 HOUR";
-
-            $sth = $this->pdo->prepare($sql);
-            $sth->execute(["token" => $token]);
-
-            $result = $sth->rowCount() > 0;
-
-            if($result == 0) {
-                $this->pdo->rollBack();
-                return false;
-            }
-
-            $sql = "DELETE FROM `user_tokens` WHERE `token` = :token AND `type` = 'email_verify'";
-            $sth = $this->pdo->prepare($sql);
-            $sth->execute(["token" => $token]);
-
-            $this->pdo->commit();
-            return $result;
-        } catch (Exception $e) {
-            $this->pdo->rollBack();
-            throw $e;
-        }
+        return $this->userRepo->verifyToken($token);
     }
 
     public function generateNewToken(string $email): array {
-        $token = generateToken();
-
-        try {
-            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $this->pdo->beginTransaction();
-
-            $sql = "SELECT NULL AS token_sent_at FROM `user_tokens` JOIN `users` ON `user_tokens`.`user_id` = `users`.`id` WHERE `email` = :email 
-                AND `token_sent_at` > NOW() - INTERVAL 1 MINUTE AND `type` = 'email_verify'";
-            $sth = $this->pdo->prepare($sql);
-            $sth->execute(["email" => $email]);
-
-            $result = $sth->fetch();
-            
-            if(!empty($result)) {
-                $this->pdo->rollBack();
-
-                return [
-                    'status' => E_RESEND_MAIL_RETURN_CODES::RateLimit
-                ];
-            }
-
-            $sql = "INSERT INTO `user_tokens` (user_id, token, type) SELECT `id`, :token, 'email_verify' FROM `users` WHERE `email` = :email AND `email_verified_at` IS NULL 
-                AND NOT EXISTS(SELECT 1 FROM `user_tokens` WHERE `user_id` = `users`.`id` AND `type` = 'email_verify' AND `token_sent_at` > NOW() - INTERVAL 1 MINUTE)";
-    
-            $sth = $this->pdo->prepare($sql);
-            $sth->execute(["token" => $token, "email" => $email]);
-
-            $result = $sth->rowCount() > 0;
-
-            if($result == false) {
-                $this->pdo->rollBack();
-
-                return ['status' => E_RESEND_MAIL_RETURN_CODES::NotFound];
-            }
-
-            $sql = "DELETE `user_tokens` FROM `user_tokens` JOIN `users` ON `user_tokens`.`user_id` = `users`.`id` 
-                WHERE `users`.`email` = :email AND `user_tokens`.`token` != :curr_token AND `user_tokens`.`type` = 'email_verify'";
-            $sth = $this->pdo->prepare($sql);
-            $sth->execute(["email" => $email, "curr_token" => $token]);
-
-            $this->pdo->commit();
-            return [
-                'status' => E_RESEND_MAIL_RETURN_CODES::Success, 
-                'token' => $token
-            ];
-        } catch (Exception $e) {
-            $this->pdo->rollBack();
-            throw $e;
-        }
+        return $this->userRepo->generateNewToken($email);
     }
 
     public function resendVerificationMail(string $email): array {
         $resultArr = $this->generateNewToken($email);
 
         if($resultArr['status'] == E_RESEND_MAIL_RETURN_CODES::Success) {
+            require_once __DIR__ . '/../Mailer.php';
             Mailer::sendVerificationMail($email, $_SESSION["name"] ?? "Mysterious stranger", $resultArr['token']);
         }
 
@@ -154,8 +73,6 @@ class UserService
     //
 
     public function createUserVerificationToken(int $userId, string $token): bool {
-        $sql = "INSERT INTO `user_tokens` (user_id, token, type) VALUES (:user_id, :token, 'email_verify')";
-        $sth = $this->pdo->prepare($sql);
-        return $sth->execute(["user_id" => $userId, "token" => $token]);
+        return $this->userRepo->createUserVerificationToken($userId, $token);
     }
 }

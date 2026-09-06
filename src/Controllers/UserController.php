@@ -1,7 +1,6 @@
 <?php
 
 use DTOs\User\RegisterUserDto;
-use JetBrains\PhpStorm\NoReturn;
 use Services\UserService;
 
 readonly class UserController
@@ -37,7 +36,7 @@ readonly class UserController
 
                     session_destroy();
 
-                    $newUserDto = new RegisterUserDto($name, $email, $password, generateToken());
+                    $newUserDto = new RegisterUserDto($name, $email, $password);
 
                     $this->userService->register($newUserDto);
 
