@@ -23,13 +23,13 @@ readonly class UserController
             $email = $_POST['email'];
             $password = $_POST['password'];
 
-            if (strlen($name) < 3 || strlen($name) > 32) {
+            if (strlen($name) < ACCOUNT_REG_MIN_NAME_LEN || strlen($name) > ACCOUNT_REG_MAX_NAME_LEN) {
                 $errors['name'] = "Wrong name length\n";
-            } else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            } else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) { // 255
                 $errors['email'] = "Wrong email format\n";
             } else if($this->userService->checkEmailExist($email)) {
                 $errors['email'] = "Email already exists\n";
-            } else if (strlen($password) < 3 || strlen($password) > 32) {
+            } else if (strlen($password) < ACCOUNT_REG_MIN_PASS_LEN || strlen($password) > ACCOUNT_REG_MAX_PASS_LEN) {
                 $errors['password'] = "Wrong password length\n";
             } else {
                 try {
