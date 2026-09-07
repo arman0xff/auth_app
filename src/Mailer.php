@@ -15,8 +15,8 @@ class Mailer {
         $mail->Host = 'sandbox.smtp.mailtrap.io';
         $mail->SMTPAuth = true;
         $mail->Port = 2525;
-        $mail->Username = '718da415b0d613';
-        $mail->Password = '7ef95be6005f69';
+        $mail->Username = '782e3128ea9335';
+        $mail->Password = '2a6546011da3a4';
 
         $mail->setFrom('from@example.com', 'Mailer');
 

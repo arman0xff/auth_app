@@ -28,7 +28,7 @@ readonly class UserController {
                 $errors['email'] = "Wrong email format\n";
             } else if($this->userService->checkEmailExist($email)) {
                 $errors['email'] = "Email already exists\n";
-            } else if ($this->userService->validatePassword($password)) {
+            } else if (!$this->userService->validatePassword($password)) {
                 $errors['password'] = "Wrong password length\n";
             } else {
                 try {
