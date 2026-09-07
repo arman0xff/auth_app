@@ -10,7 +10,7 @@ use E_SEND_MAIL_RETURN_CODES;
 use Interfaces\IUserRepository;
 
 readonly class UserService {
-    public function __construct(private IUserRepository $userRepo) {
+    public function __construct(private IUserRepository $userRepo, private AuthService $authService) {
     }
 
     public function register(RegisterUserDto $userDto): int {
@@ -18,6 +18,8 @@ readonly class UserService {
         $pass_hash = password_hash($userDto->pass, PASSWORD_DEFAULT);
 
         $userId = $this->userRepo->create($userDto->name, $userDto->email, $pass_hash);
+        
+        $this->authService->createUserRole($userId);
 
         $this->userRepo->createUserToken($userId, $userToken, 'email_verify');
 

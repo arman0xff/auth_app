@@ -14,6 +14,7 @@ require_once __DIR__ . '/../src/Services/UserService.php';
 require_once __DIR__ . '/../src/Controllers/UserController.php';
 
 $userRepo = new UserRepository($pdo);
+$authService = new AuthService(new AuthRepository($pdo));
 $userService = new UserService($userRepo);
 $userController = new UserController($userService);
 
