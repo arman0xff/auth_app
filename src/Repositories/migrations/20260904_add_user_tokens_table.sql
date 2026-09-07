@@ -27,6 +27,8 @@ CREATE TABLE IF NOT EXISTS `user_tokens` (
   CONSTRAINT `userFK` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+ALTER TABLE `users` DROP COLUMN `verification_token`;
+
 -- Dumping data for table auth_app.user_tokens: ~0 rows (approximately)
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
