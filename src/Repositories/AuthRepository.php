@@ -19,4 +19,18 @@ class AuthRepository implements IAuthRepository {
 
         $sth->execute(["user_id" => $userId]);
     }
+
+    public function changeUserRole(int $userId, string $newRole): bool {
+        $sql = "UPDATE `user_roles` SET `role_id` = (SELECT id FROM `defined_user_roles` WHERE role = :role) WHERE `user_id` = :user_id";
+        $sth = $this->pdo->prepare($sql);
+        $sth->execute(["role" => $newRole, "user_id" => $userId]);
+
+        $rowCount = $sth->rowCount();
+
+        if($rowCount == 0) {
+            throw new Exception("Role not found");
+        }
+
+        return $rowCount > 0;
+    }
 }

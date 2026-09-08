@@ -28,6 +28,10 @@
                               <th>Name</th>
                               <td><?php echo $_SESSION['name']; ?></td>
                         </tr>
+                        <tr>
+                              <th>Role</th>
+                              <td><?php echo $_SESSION['role']; ?></td>
+                        </tr>
                   </table>
 
                   <a href="<?php echo LOGOUT_USER_ROUTE?>" class="router-button">Logout</a>

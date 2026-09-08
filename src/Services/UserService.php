@@ -38,6 +38,10 @@ readonly class UserService {
         return $this->userRepo->getIdByEmail($email);
     }
 
+    public function getAllUsers(): ?array {
+        return $this->userRepo->findAll();
+    }
+
     public function validatePassword(string $password): bool {
         return strlen($password) >= ACCOUNT_REG_MIN_PASS_LEN && strlen($password) <= ACCOUNT_REG_MAX_PASS_LEN;
     }

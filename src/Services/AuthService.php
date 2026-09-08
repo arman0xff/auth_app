@@ -13,4 +13,37 @@ class AuthService {
     public function createUserDefaultRole(int $userId): void {
         $this->authRepo->createUserDefaultRole($userId);
     }
+
+    public function can(string $permission): bool {
+        if(!isset($_SESSION['role'])) {
+            return false;
+        }
+
+        switch($permission) {
+            case 'manage_users': {
+                return $_SESSION['role'] === 'admin';
+            }
+            case 'access_moderator_page': {
+                return $_SESSION['role'] === 'moderator' || $_SESSION['role'] === 'admin';
+            }
+            case 'access_admin_page': {
+                return $_SESSION['role'] === 'admin';
+            }
+            case 'view_dashboard': {
+                return $_SESSION['role'] === 'user' || $_SESSION['role'] === 'moderator' || $_SESSION['role'] === 'admin';
+            }
+            case 'view_users': {
+                return $_SESSION['role'] === 'admin';
+            }
+            default: {
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    public function changeUserRole(int $userId, string $newRole): bool {
+        return $this->authRepo->changeUserRole($userId, $newRole);
+    }
 }

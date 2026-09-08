@@ -80,6 +80,22 @@ readonly class UserRepository implements IUserRepository {
         return $user; 
     }
 
+    public function findAll(): ?array {
+        $sql = "SELECT `u`.`id`, `u`.`name`, `u`.`email`, `u`.`email_verified_at`, `u`.`created_at`, `dur`.`role`
+            FROM `users` AS u JOIN `user_roles` AS ur ON `u`.`id` = `ur`.`user_id` JOIN `defined_user_roles` AS dur ON `ur`.`role_id` = `dur`.`id`";
+            
+        $sth = $this->pdo->prepare($sql);
+        $sth->execute();
+
+        $users = $sth->fetchAll();
+
+        if($users == null) {
+            return null;
+        }
+
+        return $users; 
+    }
+
     public function updatePassword(string $token, string $password): bool {
         $sql = "UPDATE `users` JOIN `user_tokens` ON `users`.`id` = `user_tokens`.`user_id` 
             SET `users`.`password` = :password WHERE `user_tokens`.`token` = :token AND `user_tokens`.`type` = 'pass_reset'";

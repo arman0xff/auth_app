@@ -4,10 +4,11 @@ namespace Controllers;
 
 use DTOs\User\RegisterUserDto;
 use Services\UserService;
+use Services\AuthService;
 use Exception;
 use E_SEND_MAIL_RETURN_CODES;
 readonly class UserController {
-    public function __construct(private UserService $userService) {
+    public function __construct(private UserService $userService, private AuthService $authService) {
         
     }
 
@@ -94,6 +95,12 @@ readonly class UserController {
         }
         else if(!isset($_SESSION["email_verified_at"]) || $_SESSION["email_verified_at"] == null) {
             $message = "You must verify your email to access this page";
+        }
+        else if(!isset($_SESSION["role"])) {
+            $message = "You must have a role to access this page";
+        }
+        else if(!$this->authService->can('view_dashboard')) {
+            $message = "You don't have permission to view this page";
         }
 
         require_once __DIR__ . '/../Views/Dashboard.php';
@@ -252,6 +259,42 @@ readonly class UserController {
 
         require_once __DIR__ . '/../Views/ResetPassword.php';
 
+        exit;
+    }
+
+    public function showAdminPanel(): void {
+        $users = [];
+
+        if(!isset($_SESSION['role']) || ! $this->authService->can('access_admin_page')) {
+            $error = "You don't have permission to view this page";
+        }
+        else if($_SERVER["REQUEST_METHOD"] == "GET") {
+            $users = $this->userService->getAllUsers();
+        }
+        else {
+            if($_SERVER["REQUEST_METHOD"] == "POST") {
+                $userId = $_POST["user_id"] ?? null;
+                $newRole = $_POST["new_role"] ?? null;
+
+                if($userId == null || $newRole == null) {
+                    $error = "User id and new role are required";
+                }
+                else if(!$this->authService->can('manage_users')) {
+                    $error = "You don't have permission to change user roles";
+                }
+                else {
+                    try {
+                        $this->authService->changeUserRole($userId, $newRole);
+                        header('Location: ' . ADMIN_PANEL_ROUTE);
+                        exit;
+                    } catch(Exception $e) {
+                        $error = $e->getMessage();
+                    }
+                }
+            }
+        }
+
+        require_once __DIR__ . '/../Views/AdminPanel.php';
         exit;
     }
 }

@@ -22,6 +22,7 @@ const VERIFY_EMAIL_ROUTE = "/verify-email";
 const RESEND_MAIL_ROUTE = "/resend-mail";
 const FORGET_PASSWORD_ROUTE = "/forget-password";
 const RESET_PASSWORD_ROUTE = "/reset-password";
+const ADMIN_PANEL_ROUTE = "/admin";
 
 enum E_SEND_MAIL_RETURN_CODES {
     case Success;

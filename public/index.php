@@ -14,12 +14,15 @@ require_once __DIR__ . '/../src/Helpers.php';
 require_once __DIR__ . '/../src/Interfaces/IUserRepository.php';
 require_once __DIR__ . '/../src/Repositories/UserRepository.php';
 require_once __DIR__ . '/../src/Services/UserService.php';
+require_once __DIR__ . '/../src/Interfaces/IAuthRepository.php';
+require_once __DIR__ . '/../src/Repositories/AuthRepository.php';
+require_once __DIR__ . '/../src/Services/AuthService.php';
 require_once __DIR__ . '/../src/Controllers/UserController.php';
 
 $userRepo = new UserRepository($pdo);
 $authService = new AuthService(new AuthRepository($pdo));
 $userService = new UserService($userRepo, $authService);
-$userController = new UserController($userService);
+$userController = new UserController($userService, $authService);
 
 session_start();
 
@@ -55,6 +58,11 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
     }
     case RESET_PASSWORD_ROUTE: {
         $userController->resetPassword();
+        break;
+    }
+
+    case ADMIN_PANEL_ROUTE: {
+        $userController->showAdminPanel();
         break;
     }
 }

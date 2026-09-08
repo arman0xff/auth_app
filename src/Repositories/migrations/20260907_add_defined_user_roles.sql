@@ -30,9 +30,9 @@ CREATE TABLE IF NOT EXISTS `defined_user_roles` (
 -- Dumping data for table auth_app.defined_user_roles: ~0 rows (approximately)
 DELETE FROM `defined_user_roles`;
 INSERT INTO `defined_user_roles` (`id`, `role`) VALUES
-	(1, 'User'),
-	(2, 'Moderator'),
-	(3, 'Admin');
+	(1, 'user'),
+	(2, 'moderator'),
+	(3, 'admin');
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
