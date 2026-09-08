@@ -37,7 +37,7 @@
                   <?php if(isset($_SESSION['role']) && $this->authService->can('access_admin_page')) {?>
                         <a href="<?php echo ADMIN_PANEL_ROUTE?>" class="router-button-main">Go to admin panel</a>
                   <?php } ?>
-                  <?php if(isset($_SESSION['role']) && $this->authService->can('access_moderator_page') && !$this->authService->can('access_moderator_page')) {?>
+                  <?php if(isset($_SESSION['role']) && $this->authService->can('access_moderator_page')) {?>
                         <a href="<?php echo ADMIN_PANEL_ROUTE?>" class="router-button-main">Go to moderator page</a>
                   <?php } ?>
 

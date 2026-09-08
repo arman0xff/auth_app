@@ -33,4 +33,18 @@ class AuthRepository implements IAuthRepository {
 
         return $rowCount > 0;
     }
+
+    public function getUserRoleById(int $userId): ?string {
+        $sql = "SELECT `defined_user_roles`.role FROM `user_roles` JOIN `defined_user_roles` ON `user_roles`.role_id = `defined_user_roles`.id WHERE `user_roles`.user_id = :user_id";
+        $sth = $this->pdo->prepare($sql);
+        $sth->execute(["user_id" => $userId]);
+
+        $row = $sth->fetch();
+
+        if($row == null) {
+            return null;
+        }
+
+        return $row['role'];
+    }
 }

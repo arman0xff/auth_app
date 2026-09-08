@@ -264,8 +264,10 @@ readonly class UserController {
 
     public function showAdminPanel(): void {
         $users = [];
+        $_SESSION['role'] = $this->authService->refreshUserRole($_SESSION['id']);
 
-        if(!isset($_SESSION['role']) || !$this->authService->can('access_admin_page')) {
+        if(!$this->authService->can('access_admin_page')) {
+            http_response_code(403);
             $error = "You don't have permission to view this page";
         }
         else if($_SERVER["REQUEST_METHOD"] == "GET") {
@@ -299,8 +301,10 @@ readonly class UserController {
     }
     public function showModeratorPanel(): void {
         $users = [];
+        $_SESSION['role'] = $this->authService->refreshUserRole($_SESSION['id']);
 
-        if(!isset($_SESSION['role']) || !$this->authService->can('access_moderator_page')) {
+        if(!$this->authService->can('access_moderator_page')) {
+            http_response_code(403);
             $error = "You don't have permission to view this page";
         }
         else if($_SERVER["REQUEST_METHOD"] == "GET") {

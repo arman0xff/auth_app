@@ -58,4 +58,8 @@ class AuthService {
     public function changeUserRole(int $userId, string $newRole): bool {
         return $this->authRepo->changeUserRole($userId, $newRole);
     }
+
+    public function refreshUserRole(int $id): ?string {
+        return $this->authRepo->getUserRoleById($id);
+    }
 }

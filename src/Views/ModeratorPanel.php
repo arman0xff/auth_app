@@ -12,7 +12,7 @@
       <?php if(!isset($_SESSION["id"]) || !isset($_SESSION["email_verified_at"]) || $_SESSION["email_verified_at"] == null 
             || !isset($_SESSION["role"]) || isset($_SESSION["role"]) && !$this->authService->can('access_moderator_page')) {?>
             <p class="auth-switch">
-                  <?php echo !empty($message) ? $message : "Some error occured"; ?> <a href="<?php echo LOGIN_USER_ROUTE?>" class="router-link">Go to login page</a>
+                  <?php echo !empty($error) ? $error : "Some error occured"; ?> <a href="<?php echo LOGIN_USER_ROUTE?>" class="router-link">Go to login page</a>
             </p>
       <?php } else { ?>
             <table>
