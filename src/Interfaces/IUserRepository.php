@@ -7,6 +7,7 @@ interface IUserRepository {
     public function checkEmailExist(string $email);
     public function getIdByEmail(string $email);
     public function findByEmail(string $email);
+    public function findByEmailWithRole(string $email);
     public function updatePassword(string $token, string $password);
 
     // tokens

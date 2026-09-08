@@ -14,7 +14,7 @@ class AuthRepository implements IAuthRepository {
     }
 
     public function createUserDefaultRole(int $userId): void {
-        $sql = "INSERT INTO `user_roles` (user_id) VALUES (:user_id)";
+        $sql = "INSERT INTO `user_roles` (user_id, role_id) VALUES (:user_id, 1)";
         $sth = $this->pdo->prepare($sql);
 
         $sth->execute(["user_id" => $userId]);

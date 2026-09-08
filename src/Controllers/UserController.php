@@ -74,6 +74,7 @@ readonly class UserController {
                 $_SESSION['name'] = $user->name;
                 $_SESSION['email'] = $user->email;
                 $_SESSION['email_verified_at'] = $user->emailVerifiedAt;
+                $_SESSION['role'] = $user->role;
 
                 header('Location: ' . DASHBOARD_USER_ROUTE);
                 exit;
@@ -230,7 +231,10 @@ readonly class UserController {
                 }
                 else {
                     try {
-                        if($this->userService->updatePassword($token, $_POST["new-password"])) {
+                        if(!$this->userService->verifyResetPasswordToken($_SESSION["token"])) {
+                            $error = "Invalid token";
+                        }
+                        else if($this->userService->updatePassword($token, $_POST["new-password"])) {
                             $_SESSION['message'] = "Password successfully changed";
                             $_SESSION["token"] = null;
                             header('Location: ' . LOGIN_USER_ROUTE);

@@ -62,6 +62,24 @@ readonly class UserRepository implements IUserRepository {
         return $user; 
     }
 
+    public function findByEmailWithRole(string $email): ?array {
+        $sql = "SELECT `u`.`id`, `u`.`name`, `u`.`password`, `u`.`email_verified_at`, `dur`.`role`
+            FROM `users` AS u JOIN `user_roles` AS ur ON `u`.`id` = `ur`.`user_id` 
+            JOIN `defined_user_roles` AS dur ON `ur`.`role_id` = `dur`.`id`
+            WHERE `u`.`email` = :email";
+            
+        $sth = $this->pdo->prepare($sql);
+        $sth->execute(["email" => $email]);
+
+        $user = $sth->fetch();
+
+        if($user == null) {
+            return null;
+        }
+
+        return $user; 
+    }
+
     public function updatePassword(string $token, string $password): bool {
         $sql = "UPDATE `users` JOIN `user_tokens` ON `users`.`id` = `user_tokens`.`user_id` 
             SET `users`.`password` = :password WHERE `user_tokens`.`token` = :token AND `user_tokens`.`type` = 'pass_reset'";
@@ -187,7 +205,7 @@ readonly class UserRepository implements IUserRepository {
     // password reset
 
     public function verifyResetPasswordToken(string $token): array|bool {
-        $sql = "SELECT 1 FROM `user_tokens` WHERE `token` = :token AND `token_sent_at` >= NOW() - INTERVAL 15 MINUTE";
+        $sql = "SELECT 1 FROM `user_tokens` WHERE `token` = :token AND `token_sent_at` >= NOW() - INTERVAL 15 MINUTE AND `type` = 'pass_reset'";
         $sth = $this->pdo->prepare($sql);
         $sth->execute(["token" => $token]);
 

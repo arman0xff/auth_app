@@ -2,7 +2,10 @@
 
 use Controllers\UserController;
 use Services\UserService;
+use Services\AuthService;
+
 use Repositories\UserRepository;
+use Repositories\AuthRepository;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../src/DBConnection.php';
@@ -15,7 +18,7 @@ require_once __DIR__ . '/../src/Controllers/UserController.php';
 
 $userRepo = new UserRepository($pdo);
 $authService = new AuthService(new AuthRepository($pdo));
-$userService = new UserService($userRepo);
+$userService = new UserService($userRepo, $authService);
 $userController = new UserController($userService);
 
 session_start();

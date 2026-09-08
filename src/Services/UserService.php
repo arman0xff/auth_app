@@ -19,7 +19,7 @@ readonly class UserService {
 
         $userId = $this->userRepo->create($userDto->name, $userDto->email, $pass_hash);
         
-        $this->authService->createUserRole($userId);
+        $this->authService->createUserDefaultRole($userId);
 
         $this->userRepo->createUserToken($userId, $userToken, 'email_verify');
 
@@ -57,13 +57,16 @@ readonly class UserService {
     }
 
     public function login(string $email, string $password): User {
-        $resArray = $this->userRepo->findByEmail($email);
+        $resArray = $this->userRepo->findByEmailWithRole($email);
 
         if($resArray == null) {
             throw new Exception("Invalid email or password");
         }
 
-        $user = new User((int)$resArray['id'], $resArray['name'], $email, $resArray['password'], $resArray['email_verified_at']);
+        $user = new User(
+            (int)$resArray['id'], $resArray['name'], $email, $resArray['password'], $resArray['role'],
+            $resArray['email_verified_at']
+        );
 
         if (!$user || !password_verify($password, $user->password)) {
             throw new Exception("Invalid email or password");
