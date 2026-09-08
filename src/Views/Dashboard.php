@@ -34,6 +34,13 @@
                         </tr>
                   </table>
 
+                  <?php if(isset($_SESSION['role']) && $this->authService->can('access_admin_page')) {?>
+                        <a href="<?php echo ADMIN_PANEL_ROUTE?>" class="router-button-main">Go to admin panel</a>
+                  <?php } ?>
+                  <?php if(isset($_SESSION['role']) && $this->authService->can('access_moderator_page') && !$this->authService->can('access_moderator_page')) {?>
+                        <a href="<?php echo ADMIN_PANEL_ROUTE?>" class="router-button-main">Go to moderator page</a>
+                  <?php } ?>
+
                   <a href="<?php echo LOGOUT_USER_ROUTE?>" class="router-button">Logout</a>
             <?php } ?>
       </form>

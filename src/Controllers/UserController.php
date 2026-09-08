@@ -265,7 +265,7 @@ readonly class UserController {
     public function showAdminPanel(): void {
         $users = [];
 
-        if(!isset($_SESSION['role']) || ! $this->authService->can('access_admin_page')) {
+        if(!isset($_SESSION['role']) || !$this->authService->can('access_admin_page')) {
             $error = "You don't have permission to view this page";
         }
         else if($_SERVER["REQUEST_METHOD"] == "GET") {
@@ -295,6 +295,22 @@ readonly class UserController {
         }
 
         require_once __DIR__ . '/../Views/AdminPanel.php';
+        exit;
+    }
+    public function showModeratorPanel(): void {
+        $users = [];
+
+        if(!isset($_SESSION['role']) || !$this->authService->can('access_moderator_page')) {
+            $error = "You don't have permission to view this page";
+        }
+        else if($_SERVER["REQUEST_METHOD"] == "GET") {
+            $users = $this->userService->getAllUsers();
+        }
+        else {
+            $error = "Invalid request method";
+        }
+
+        require_once __DIR__ . '/../Views/ModeratorPanel.php';
         exit;
     }
 }

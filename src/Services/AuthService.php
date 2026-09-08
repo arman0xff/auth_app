@@ -43,6 +43,18 @@ class AuthService {
         return false;
     }
 
+    public function requireLogin(): bool {
+        return !isset($_SESSION['id']);
+    }
+
+    public function requireRole(string $role): bool {
+        return !isset($_SESSION['role']) || $_SESSION['role'] !== $role;
+    }
+
+    public function hasRole(string $role): bool {
+        return isset($_SESSION['role']) && $_SESSION['role'] === $role;
+    }
+
     public function changeUserRole(int $userId, string $newRole): bool {
         return $this->authRepo->changeUserRole($userId, $newRole);
     }

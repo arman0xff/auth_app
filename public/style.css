@@ -33,7 +33,7 @@ label {
     margin-bottom: 6px;
 }
 
-button, .router-button {
+button, .router-button, .router-button-main {
     background-color: #774aaa;
     color: white;
     border: none;
@@ -46,6 +46,15 @@ button, .router-button {
     margin-bottom: 12px;
     text-decoration: none;
     text-align: center;
+}
+
+.router-button-main {
+    margin-top: 10px;
+}
+
+.router-button {
+    margin-top: 3px;
+    margin-bottom: 3px;
 }
 
 button:hover, .router-button:hover {

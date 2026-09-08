@@ -60,9 +60,12 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
         $userController->resetPassword();
         break;
     }
-
     case ADMIN_PANEL_ROUTE: {
         $userController->showAdminPanel();
+        break;
+    }
+    case MODERATOR_PANEL_ROUTE: {
+        $userController->showModeratorPanel();
         break;
     }
 }
