@@ -56,6 +56,10 @@ class AuthService {
     }
 
     public function changeUserRole(int $userId, string $newRole): bool {
+        if(!$this->authRepo->isRoleExists($newRole)) {
+            throw new Exception("Role doesn't exist");
+        }
+
         return $this->authRepo->changeUserRole($userId, $newRole);
     }
 

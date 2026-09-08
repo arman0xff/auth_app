@@ -47,4 +47,12 @@ class AuthRepository implements IAuthRepository {
 
         return $row['role'];
     }
+
+    public function isRoleExists(string $role): bool {
+        $sql = "SELECT 1 FROM `defined_user_roles` WHERE `role` = :role";
+        $sth = $this->pdo->prepare($sql);
+        $sth->execute(["role" => $role]);
+
+        return $sth->fetch() != false;
+    }
 }

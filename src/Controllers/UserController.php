@@ -93,14 +93,19 @@ readonly class UserController {
         if (!isset($_SESSION["id"])) {
             $message = "You must be logged in to access this page";
         }
-        else if(!isset($_SESSION["email_verified_at"]) || $_SESSION["email_verified_at"] == null) {
-            $message = "You must verify your email to access this page";
-        }
-        else if(!isset($_SESSION["role"])) {
-            $message = "You must have a role to access this page";
-        }
-        else if(!$this->authService->can('view_dashboard')) {
-            $message = "You don't have permission to view this page";
+        else {
+            if(!isset($_SESSION["email_verified_at"]) || $_SESSION["email_verified_at"] == null) {
+                $message = "You must verify your email to access this page";
+            }
+            else if(!isset($_SESSION["role"])) {
+                $message = "You must have a role to access this page";
+            }
+
+            $_SESSION['role'] = $this->authService->refreshUserRole($_SESSION['id']);
+
+            if(!$this->authService->can('view_dashboard')) {
+                $message = "You don't have permission to view this page";
+            }
         }
 
         require_once __DIR__ . '/../Views/Dashboard.php';
@@ -112,6 +117,7 @@ readonly class UserController {
         session_destroy();
 
         header('Location: ' . LOGIN_USER_ROUTE);
+
         exit;
     }
 
@@ -170,8 +176,6 @@ readonly class UserController {
         }
 
         require_once __DIR__ . '/../Views/ResendMail.php';
-
-        exit;
     }
 
     public function forgetPassword(): void {
@@ -210,8 +214,6 @@ readonly class UserController {
         }
 
         require_once __DIR__ . '/../Views/ForgetPassword.php';
-
-        exit;
     }
 
     public function resetPassword(): void {
@@ -258,63 +260,71 @@ readonly class UserController {
         }
 
         require_once __DIR__ . '/../Views/ResetPassword.php';
-
-        exit;
     }
 
     public function showAdminPanel(): void {
-        $users = [];
-        $_SESSION['role'] = $this->authService->refreshUserRole($_SESSION['id']);
-
-        if(!$this->authService->can('access_admin_page')) {
-            http_response_code(403);
-            $error = "You don't have permission to view this page";
-        }
-        else if($_SERVER["REQUEST_METHOD"] == "GET") {
-            $users = $this->userService->getAllUsers();
+        if(!isset($_SESSION['id'])) {
+            header('Location: ' . LOGIN_USER_ROUTE);
+            exit;
         }
         else {
-            if($_SERVER["REQUEST_METHOD"] == "POST") {
-                $userId = $_POST["user_id"] ?? null;
-                $newRole = $_POST["new_role"] ?? null;
+            $users = [];
+            $_SESSION['role'] = $this->authService->refreshUserRole($_SESSION['id']);
 
-                if($userId == null || $newRole == null) {
-                    $error = "User id and new role are required";
-                }
-                else if(!$this->authService->can('manage_users')) {
-                    $error = "You don't have permission to change user roles";
-                }
-                else {
-                    try {
-                        $this->authService->changeUserRole($userId, $newRole);
-                        header('Location: ' . ADMIN_PANEL_ROUTE);
-                        exit;
-                    } catch(Exception $e) {
-                        $error = $e->getMessage();
+            if(!$this->authService->can('access_admin_page')) {
+                http_response_code(403);
+                $error = "You don't have permission to view this page";
+            }
+            else if($_SERVER["REQUEST_METHOD"] == "GET") {
+                $users = $this->userService->getAllUsers();
+            }
+            else {
+                if($_SERVER["REQUEST_METHOD"] == "POST") {
+                    $userId = $_POST["user_id"] ?? null;
+                    $newRole = $_POST["new_role"] ?? null;
+
+                    if($userId == null || $newRole == null) {
+                        $error = "User id and new role are required";
+                    }
+                    else if(!$this->authService->can('manage_users')) {
+                        $error = "You don't have permission to change user roles";
+                    }
+                    else {
+                        try {
+                            $this->authService->changeUserRole($userId, $newRole);
+                            header('Location: ' . ADMIN_PANEL_ROUTE);
+                            exit;
+                        } catch(Exception $e) {
+                            $error = $e->getMessage();
+                        }
                     }
                 }
             }
         }
 
         require_once __DIR__ . '/../Views/AdminPanel.php';
-        exit;
     }
     public function showModeratorPanel(): void {
-        $users = [];
-        $_SESSION['role'] = $this->authService->refreshUserRole($_SESSION['id']);
-
-        if(!$this->authService->can('access_moderator_page')) {
-            http_response_code(403);
-            $error = "You don't have permission to view this page";
-        }
-        else if($_SERVER["REQUEST_METHOD"] == "GET") {
-            $users = $this->userService->getAllUsers();
+        if(!isset($_SESSION['id'])) {
+            header('Location: ' . LOGIN_USER_ROUTE);
+            exit;
         }
         else {
-            $error = "Invalid request method";
+            $users = [];
+            $_SESSION['role'] = $this->authService->refreshUserRole($_SESSION['id']);
+
+            if(!$this->authService->can('access_moderator_page')) {
+                http_response_code(403);
+                $error = "You don't have permission to view this page";
+            }
+            else if($_SERVER["REQUEST_METHOD"] == "GET") {
+                $users = $this->userService->getAllUsers();
+            }
+            else {
+                $error = "Invalid request method";
+            }
         }
 
         require_once __DIR__ . '/../Views/ModeratorPanel.php';
-        exit;
     }
 }
