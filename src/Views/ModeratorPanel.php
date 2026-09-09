@@ -9,10 +9,9 @@
 <body>
       <h2>Moderator panel</h2>
 
-      <?php if(!isset($_SESSION["id"]) || !isset($_SESSION["email_verified_at"]) || $_SESSION["email_verified_at"] == null 
-            || !isset($_SESSION["role"]) || isset($_SESSION["role"]) && !$this->authService->can('access_moderator_page')) {?>
+      <?php if(!empty($error)) {?>
             <p class="auth-switch">
-                  <?php echo !empty($error) ? $error : "Some error occured"; ?> <a href="<?php echo LOGIN_USER_ROUTE?>" class="router-link">Go to login page</a>
+                  <?php echo $error; ?> <a href="<?php echo LOGIN_USER_ROUTE?>" class="router-link">Go to login page</a>
             </p>
       <?php } else { ?>
             <table>
@@ -30,12 +29,12 @@
                   <tbody>
                         <?php foreach($users as $user) { ?>
                               <tr>
-                                    <td><?php echo $user['id']; ?></td>
-                                    <td><?php echo $user['name']; ?></td>
-                                    <td><?php echo $user['email']; ?></td>
-                                    <td><?php echo $user['role']; ?></td>
+                                    <td><?php echo htmlspecialchars($user['id']); ?></td>
+                                    <td><?php echo htmlspecialchars($user['name']); ?></td>
+                                    <td><?php echo htmlspecialchars($user['email']); ?></td>
+                                    <td><?php echo htmlspecialchars($user['role']); ?></td>
                                     <td><?php echo $user['email_verified_at'] != null ? "Verified" : "Not verified"; ?></td>
-                                    <td><?php echo $user['created_at']; ?></td>
+                                    <td><?php echo htmlspecialchars($user['created_at']); ?></td>
                               </tr>
                         <?php } ?>
                   </tbody>

@@ -12,6 +12,24 @@ body {
     align-items: center;
 }
 
+.page-body {
+    background-color: #ffffff;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+    border-radius: 12px;
+}
+
+.panel {
+    background-color: #ffffff;
+    padding: 32px;
+    border-radius: 12px;
+    width: 100%;
+}
+
 h1 {
     margin-top: 0;
     font-size: 20px;
@@ -143,7 +161,9 @@ form {
 }
 
 table {
-    width: 100%;
+    width: 90%;
+    border-collapse: collapse;
+    margin: 0 auto;
 }
 
 th {
@@ -155,7 +175,25 @@ th {
 
 td {
     padding: 12px 6px;
-    text-align: right;
+    text-align: left;
     font-size: 15px;
     border-bottom: 1px solid #e6e0e0;
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+.badge-success {
+    background-color: #199448;
+    color: white;
+}
+
+.badge-danger {
+    background-color: #ca303f;
+    color: white;
 }

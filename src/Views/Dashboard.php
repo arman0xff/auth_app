@@ -10,27 +10,27 @@
       <form method="post" action="<?php echo DASHBOARD_USER_ROUTE?>">
             <h2>Dashboard</h2>
 
-            <?php if(!isset($_SESSION["id"]) || !isset($_SESSION["email_verified_at"]) || $_SESSION["email_verified_at"] == null) {?>
+            <?php if(!empty($message)) {?>
                   <p class="auth-switch">
-                        <?php echo !empty($message) ? $message : "Some error occured"; ?> <a href="<?php echo LOGIN_USER_ROUTE?>" class="router-link">Go to login page</a>
+                        <?php echo $message; ?> <a href="<?php echo LOGIN_USER_ROUTE?>" class="router-link">Go to login page</a>
                   </p>
             <?php } else { ?>
                   <table>
                         <tr>
                               <th>Id</th>
-                              <td><?php echo $_SESSION['id']; ?></td>
+                              <td><?php echo htmlspecialchars($_SESSION['id']); ?></td>
                         </tr>
                         <tr>
                               <th>Email</th>
-                              <td><?php echo $_SESSION['email']; ?></td>
+                              <td><?php echo htmlspecialchars($_SESSION['email']); ?></td>
                         </tr>
                         <tr>
                               <th>Name</th>
-                              <td><?php echo $_SESSION['name']; ?></td>
+                              <td><?php echo htmlspecialchars($_SESSION['name']); ?></td>
                         </tr>
                         <tr>
                               <th>Role</th>
-                              <td><?php echo $_SESSION['role']; ?></td>
+                              <td><?php echo htmlspecialchars($_SESSION['role']); ?></td>
                         </tr>
                   </table>
 
