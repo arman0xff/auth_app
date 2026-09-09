@@ -152,7 +152,7 @@ readonly class UserRepository implements IUserRepository {
     }
 
     public function generateNewToken(string $email, string $type): array {
-        $token = generateToken();
+        $token = generateRandomToken();
 
         try {
             $this->pdo->beginTransaction();

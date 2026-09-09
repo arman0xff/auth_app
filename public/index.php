@@ -28,6 +28,10 @@ $userController = new UserController($userService, $authService);
 
 session_start();
 
+if(empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = generateRandomToken();
+}
+
 switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
     case '/':
     case REGISTER_USER_ROUTE: {

@@ -44,6 +44,7 @@
                                           <td><?php echo htmlspecialchars($user['created_at']); ?></td>
                                           <td>
                                                 <form method="post" action="<?php echo ADMIN_PANEL_ROUTE?>">
+                                                      <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                                                       <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
                                                       <select name="new_role">
                                                             <option value="admin" <?php echo $user['role'] == "admin" ? "selected" : ""; ?>>Admin</option>

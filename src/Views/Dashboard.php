@@ -8,6 +8,8 @@
 </head>
 <body>
       <form method="post" action="<?php echo DASHBOARD_USER_ROUTE?>">
+            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+
             <h2>Dashboard</h2>
 
             <?php if(!empty($error)) {?>

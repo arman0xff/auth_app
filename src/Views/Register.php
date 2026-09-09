@@ -7,6 +7,8 @@
 </head>
 <body>
     <form method="post" action="<?php echo REGISTER_USER_ROUTE?>">
+        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+
         <h2>Registration</h2>
 
         <div class="form-group">

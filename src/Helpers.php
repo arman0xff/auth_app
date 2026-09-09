@@ -4,8 +4,12 @@ function e(?string $value): string {
     return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
 }
 
-function generateToken(): string {
+function generateRandomToken(): string {
     return bin2hex(random_bytes(20));
+}
+
+function validateCsrfToken(string $token): bool {
+    return isset($_SESSION['csrf_token']) && $_SESSION['csrf_token'] === $token;
 }
 
 const ACCOUNT_REG_MIN_NAME_LEN = 3;

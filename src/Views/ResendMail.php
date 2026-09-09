@@ -7,6 +7,8 @@
 </head>
 <body>
     <form method="post" action="<?php echo RESEND_MAIL_ROUTE; ?>">
+        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+
         <h2>New verification link</h2>
 
         <div class="verify-form-group">
