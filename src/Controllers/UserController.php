@@ -71,6 +71,8 @@ readonly class UserController {
             try {
                 $user = $this->userService->login($email, $password);
 
+                session_regenerate_id(true);
+
                 $_SESSION['id'] = $user->id;
                 $_SESSION['name'] = $user->name;
                 $_SESSION['email'] = $user->email;

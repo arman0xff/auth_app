@@ -63,10 +63,8 @@ readonly class UserRepository implements IUserRepository {
     }
 
     public function findByEmailWithRole(string $email): ?array {
-        $sql = "SELECT `u`.`id`, `u`.`name`, `u`.`password`, `u`.`email_verified_at`, `dur`.`role`
-            FROM `users` AS u JOIN `user_roles` AS ur ON `u`.`id` = `ur`.`user_id` 
-            JOIN `defined_user_roles` AS dur ON `ur`.`role_id` = `dur`.`id`
-            WHERE `u`.`email` = :email";
+        $sql = "SELECT `u`.`id`, `u`.`name`, `u`.`password`, `u`.`email_verified_at`, `dur`.`role` FROM `users` AS u 
+            JOIN `user_roles` AS ur ON `u`.`id` = `ur`.`user_id` JOIN `defined_user_roles` AS dur ON `ur`.`role_id` = `dur`.`id` WHERE `u`.`email` = :email";
             
         $sth = $this->pdo->prepare($sql);
         $sth->execute(["email" => $email]);
@@ -125,8 +123,6 @@ readonly class UserRepository implements IUserRepository {
 
     public function verifyEmailVerificationToken(string $token): bool {
         try {
-            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
             $this->pdo->beginTransaction();
             $sql = "UPDATE `users` JOIN `user_tokens` ON `users`.`id` = `user_tokens`.`user_id` SET `users`.`email_verified_at` = NOW() WHERE `user_tokens`.`token` = :token 
                 AND `user_tokens`.`type` = 'email_verify' AND `users`.`email_verified_at` IS NULL AND `user_tokens`.`token_sent_at` > NOW() - INTERVAL 1 HOUR";
@@ -157,10 +153,9 @@ readonly class UserRepository implements IUserRepository {
         $token = generateToken();
 
         try {
-            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->pdo->beginTransaction();
 
-            $sql = "SELECT NULL AS token_sent_at FROM `user_tokens` JOIN `users` ON `user_tokens`.`user_id` = `users`.`id` WHERE `email` = :email 
+            $sql = "SELECT 1 FROM `user_tokens` JOIN `users` ON `user_tokens`.`user_id` = `users`.`id` WHERE `email` = :email 
                 AND `token_sent_at` > NOW() - INTERVAL 1 MINUTE AND `type` = :type";
             $sth = $this->pdo->prepare($sql);
             $sth->execute(["email" => $email, "type" => $type]);
