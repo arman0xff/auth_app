@@ -2,7 +2,6 @@
 
 namespace Services;
 
-use DTOs\User\RegisterUserDto;
 use Interfaces\IAuthRepository;
 use Exception;
 
@@ -11,7 +10,9 @@ class AuthService {
     }
 
     public function createUserDefaultRole(int $userId): void {
-        $this->authRepo->createUserDefaultRole($userId);
+        if(!$this->authRepo->createUserDefaultRole($userId)) {
+            throw new Exception("Failed to create user default role");
+        }
     }
 
     public function can(string $permission): bool {

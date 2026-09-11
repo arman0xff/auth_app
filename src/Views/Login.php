@@ -18,8 +18,8 @@
             <a class="router-link2" href="<?php echo FORGET_PASSWORD_ROUTE?>">Forget password?</a>
         </div>
 
-        <?php if(!empty($message)) { ?>
-            <span class="error"><?php echo $message; ?></span>
+        <?php if(!empty($error)) { ?>
+            <span class="error"><?php echo $error; ?></span>
         <?php } ?>
 
         <?php if(isset($success)) { ?>

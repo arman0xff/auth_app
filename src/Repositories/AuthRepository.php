@@ -13,11 +13,13 @@ class AuthRepository implements IAuthRepository {
 
     }
 
-    public function createUserDefaultRole(int $userId): void {
+    public function createUserDefaultRole(int $userId): bool {
         $sql = "INSERT INTO `user_roles` (user_id, role_id) VALUES (:user_id, 1)";
         $sth = $this->pdo->prepare($sql);
 
         $sth->execute(["user_id" => $userId]);
+
+        return $sth->rowCount() > 0;
     }
 
     public function changeUserRole(int $userId, string $newRole): bool {

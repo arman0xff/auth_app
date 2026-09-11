@@ -116,7 +116,9 @@ readonly class UserRepository implements IUserRepository {
     public function createUserToken(int $userId, string $token, string $type): bool {
         $sql = "INSERT INTO `user_tokens` (user_id, token, type) VALUES (:user_id, :token, :type)";
         $sth = $this->pdo->prepare($sql);
-        return $sth->execute(["user_id" => $userId, "token" => $token, "type" => $type]);
+        $sth->execute(["user_id" => $userId, "token" => $token, "type" => $type]);
+
+        return $sth->rowCount() > 0;
     }
 
     // email verification

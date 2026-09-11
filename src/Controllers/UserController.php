@@ -3,10 +3,12 @@
 namespace Controllers;
 
 use DTOs\User\RegisterUserDto;
+use DTOs\User\LoginUserDto;
 use Services\UserService;
 use Services\AuthService;
 use Exception;
 use E_SEND_MAIL_RETURN_CODES;
+
 readonly class UserController {
     public function __construct(private UserService $userService, private AuthService $authService) {
         
@@ -16,98 +18,63 @@ readonly class UserController {
         require_once __DIR__ . "/../DTOs/User/RegisterUserDto.php";
 
         $errors = [];
-        $_SESSION['message'] = "";
+        unset($_SESSION['message']);
+        
+        $newUserDto = new RegisterUserDto($_POST['name'] ?? '', $_POST['email'] ?? '', $_POST['password'] ?? '');
 
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            $name = $_POST['name'];
-            $email = $_POST['email'];
-            $password = $_POST['password'];
-
-            if (strlen($name) < ACCOUNT_REG_MIN_NAME_LEN || strlen($name) > ACCOUNT_REG_MAX_NAME_LEN) {
-                $errors['name'] = "Wrong name length\n";
-            } else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) { // 255
-                $errors['email'] = "Wrong email format\n";
-            } else if($this->userService->checkEmailExist($email)) {
-                $errors['email'] = "Email already exists\n";
-            } else if (!$this->userService->validatePassword($password)) {
-                $errors['password'] = "Wrong password length\n";
-            } else {
-                try {
-                    require_once __DIR__ . '/../Mailer.php';
-
-                    $_SESSION = [];
-
-                    $newUserDto = new RegisterUserDto($name, $email, $password);
-
-                    $this->userService->register($newUserDto);
-
-                    $_SESSION['message'] = "Account successfully registered. Please check your email to verify your account.";
-
-                    header('Location: ' . LOGIN_USER_ROUTE);
-                    exit;
-                } catch (Exception $e) {
-                    $errors['button'] = "Account doesn't registered";
-                }
+        try {
+            if($this->userService->register($newUserDto, $errors)) {
+                $_SESSION['message'] = "Account successfully registered. Please check your email to verify your account.";
+                header('Location: ' . LOGIN_USER_ROUTE);
+                exit;
             }
+        } catch (Exception) {
+            $errors['button'] = "Account doesn't registered";
         }
+
+        $this->showRegisterForm($errors);
+    }
+
+    public function showRegisterForm(array $errors = []): void {
         require_once __DIR__ . '/../Views/Register.php';
     }
 
     public function login(): void {
         require_once __DIR__ . '/../Models/User.php';
 
-        $message = "";
-        $success = $_SESSION['message'] ?? "";
-        if($success != null && strlen($_SESSION['message']) == 0) {
+        $error = "";
+        $success = $_SESSION['error'] ?? "";
+        if($success != null && strlen($_SESSION['error']) == 0) {
             $success = "";
         }
 
-        unset($_SESSION['message']);
+        unset($_SESSION['error']);
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $email = $_POST['email'];
-            $password = $_POST['password'];
+        $userDto = new LoginUserDto($_POST['email'] ?? "", $_POST['password'] ?? "");
 
-            try {
-                $user = $this->userService->login($email, $password);
+        try {
+            $this->userService->login($userDto);
 
-                session_regenerate_id(true);
-
-                $_SESSION['id'] = $user->id;
-                $_SESSION['name'] = $user->name;
-                $_SESSION['email'] = $user->email;
-                $_SESSION['email_verified_at'] = $user->emailVerifiedAt;
-                $_SESSION['role'] = $user->role;
-
-                header('Location: ' . DASHBOARD_USER_ROUTE);
-                exit;
-            } catch (Exception $e) {
-                $message = $e->getMessage();
-            }
+            header('Location: ' . DASHBOARD_USER_ROUTE);
+            exit;
+        } catch (Exception $e) {
+            $error = $e->getMessage();
         }
 
+        $this->showLoginForm();
+    }
+
+    public function showLoginForm(): void {
         require_once __DIR__ . '/../Views/Login.php';
     }
 
     public function dashboard(): void {
-        $message = "";
+        $error = "";
 
-        if (!isset($_SESSION["id"])) {
-            $message = "You must be logged in to access this page";
-        }
-        else {
-            if(!isset($_SESSION["email_verified_at"]) || $_SESSION["email_verified_at"] == null) {
-                $message = "You must verify your email to access this page";
-            }
-            else if(!isset($_SESSION["role"])) {
-                $message = "You must have a role to access this page";
-            }
-
-            $_SESSION['role'] = $this->authService->refreshUserRole($_SESSION['id']);
-
-            if(!$this->authService->can('view_dashboard')) {
-                $message = "You don't have permission to view this page";
-            }
+        try {
+            $this->userService->tryOpenDashboard($error);
+        } catch (Exception $e) {
+            $error = $e->getMessage();
         }
 
         require_once __DIR__ . '/../Views/Dashboard.php';

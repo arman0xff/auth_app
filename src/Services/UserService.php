@@ -3,25 +3,54 @@
 namespace Services;
 
 use DTOs\User\RegisterUserDto;
+use DTOs\User\LoginUserDto;
 use Exception;
 use Mailer\Mailer;
 use Models\User;
 use E_SEND_MAIL_RETURN_CODES;
 use Interfaces\IUserRepository;
+use Helpers;
 
 readonly class UserService {
     public function __construct(private IUserRepository $userRepo, private AuthService $authService) {
     }
 
-    public function register(RegisterUserDto $userDto): int {
+    public function register(RegisterUserDto $userDto, array &$errors): int {
+        if (strlen($userDto->name) < ACCOUNT_REG_MIN_NAME_LEN || strlen($userDto->name) > ACCOUNT_REG_MAX_NAME_LEN) {
+            $errors['name'] = "Wrong name length\n";
+            return 0;
+        } 
+        if (!filter_var($userDto->email, FILTER_VALIDATE_EMAIL)) { // 255
+            $errors['email'] = "Wrong email format\n";
+            return 0;
+        }
+        if($this->checkEmailExist($userDto->email)) {
+            $errors['email'] = "Email already exists\n";
+            return 0;
+        } 
+        if (!$this->validatePassword($userDto->password)) {
+            $errors['password'] = "Wrong password length\n";
+            return 0;
+        }
+
         $userToken = generateToken();
-        $pass_hash = password_hash($userDto->pass, PASSWORD_DEFAULT);
+        $pass_hash = password_hash($userDto->password, PASSWORD_DEFAULT);
 
         $userId = $this->userRepo->create($userDto->name, $userDto->email, $pass_hash);
         
-        $this->authService->createUserDefaultRole($userId);
+        if($userId == 0) {
+            throw new Exception("Failed to create user");
+        }
 
-        $this->userRepo->createUserToken($userId, $userToken, 'email_verify');
+        try {
+            $this->authService->createUserDefaultRole($userId);
+        } catch (Exception $e) {
+            throw new Exception("Failed to create user default role");
+        }
+
+        if(!$this->userRepo->createUserToken($userId, $userToken, 'email_verify')) {
+            throw new Exception("Failed to create user token");
+        }
 
         require_once __DIR__ . '/../Mailer.php';
 
@@ -60,27 +89,62 @@ readonly class UserService {
         return $result;
     }
 
-    public function login(string $email, string $password): User {
-        $resArray = $this->userRepo->findByEmailWithRole($email);
+    public function login(LoginUserDto $userDto): User {
+        $resArray = $this->userRepo->findByEmailWithRole($userDto->email);
 
         if($resArray == null) {
             throw new Exception("Invalid email or password");
         }
 
         $user = new User(
-            (int)$resArray['id'], $resArray['name'], $email, $resArray['password'], $resArray['role'],
+            (int)$resArray['id'], $resArray['name'], $userDto->email, $resArray['password'], $resArray['role'],
             $resArray['email_verified_at']
         );
 
-        if (!$user || !password_verify($password, $user->password)) {
+        if (!$user || !password_verify($userDto->password, $user->password)) {
             throw new Exception("Invalid email or password");
         }
+
+        session_regenerate_id(true);
+
+        $_SESSION['id'] = $user->id;
+        $_SESSION['name'] = $user->name;
+        $_SESSION['email'] = $user->email;
+        $_SESSION['email_verified_at'] = $user->emailVerifiedAt;
+        $_SESSION['role'] = $user->role;
 
         return $user;
     }
 
     public function update(string $email): int {
         return $this->userRepo->getIdByEmail($email);
+    }
+
+    public function tryOpenDashboard(&$error = ""): void {
+        if (!isset($_SESSION["id"])) {
+            $error = "You must be logged in to access this page";
+            return;
+        }
+        
+        if(!isset($_SESSION["email_verified_at"]) || $_SESSION["email_verified_at"] == null) {
+            $error = "You must verify your email to access this page";
+            return;
+        }
+        if(!isset($_SESSION["role"])) {
+            $error = "You must have a role to access this page";
+            return;
+        }
+
+        $_SESSION['role'] = $this->authService->refreshUserRole($_SESSION['id']);
+
+        if(!$this->authService->can('view_dashboard')) {
+            $error = "You don't have permission to view this page";
+        }
+
+        if($this->authService->requireLogin()) {
+            header('Location: ' . LOGIN_USER_ROUTE);
+            exit;
+        }
     }
 
     // tokens

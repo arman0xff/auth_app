@@ -1,5 +1,7 @@
 <?php
 
+session_save_path(__DIR__ . "/../storage/sessions");
+
 use Controllers\UserController;
 use Services\UserService;
 use Services\AuthService;
@@ -29,11 +31,29 @@ session_start();
 switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
     case '/':
     case REGISTER_USER_ROUTE: {
-        $userController->register();
+        if ($_SERVER["REQUEST_METHOD"] === "POST") {
+            $userController->register();
+        }
+        else if ($_SERVER["REQUEST_METHOD"] === "GET") {
+            $userController->showRegisterForm();
+        }
+        else {
+            http_response_code(405);
+            echo "Method not allowed.";
+        }
         break;
     }
     case LOGIN_USER_ROUTE: {
-        $userController->login();
+        if ($_SERVER["REQUEST_METHOD"] === "POST") {
+            $userController->login();
+        }
+        else if ($_SERVER["REQUEST_METHOD"] === "GET") {
+            $userController->showLoginForm();
+        }
+        else {
+            http_response_code(405);
+            echo "Method not allowed.";
+        }
         break;
     }
     case DASHBOARD_USER_ROUTE: {
@@ -67,6 +87,10 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
     case MODERATOR_PANEL_ROUTE: {
         $userController->showModeratorPanel();
         break;
+    }
+    default: {
+        http_response_code(404);
+        echo "No route found.";
     }
 }
 ?>

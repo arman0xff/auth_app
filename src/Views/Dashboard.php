@@ -10,9 +10,9 @@
       <form method="post" action="<?php echo DASHBOARD_USER_ROUTE?>">
             <h2>Dashboard</h2>
 
-            <?php if(!empty($message)) {?>
+            <?php if(!empty($error)) {?>
                   <p class="auth-switch">
-                        <?php echo $message; ?> <a href="<?php echo LOGIN_USER_ROUTE?>" class="router-link">Go to login page</a>
+                        <?php echo $error; ?> <a href="<?php echo LOGIN_USER_ROUTE?>" class="router-link">Go to login page</a>
                   </p>
             <?php } else { ?>
                   <table>
