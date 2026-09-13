@@ -33,7 +33,7 @@ readonly class UserService {
             return 0;
         }
 
-        $userToken = generateToken();
+        $userToken = generateRandomToken();
         $pass_hash = password_hash($userDto->password, PASSWORD_DEFAULT);
 
         $userId = $this->userRepo->create($userDto->name, $userDto->email, $pass_hash);

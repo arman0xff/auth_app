@@ -1,1 +1,0 @@
-ALTER TABLE `users` CHANGE COLUMN `name` `name` VARCHAR(24) NOT NULL COLLATE 'utf8mb4_0900_ai_ci' AFTER `id`, CHANGE COLUMN `password` `password` VARCHAR(255) NOT NULL COLLATE 'utf8mb4_0900_ai_ci' AFTER `email`;

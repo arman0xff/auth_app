@@ -12,6 +12,10 @@ use Repositories\AuthRepository;
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../src/DBConnection.php';
 require_once __DIR__ . '/../src/Helpers.php';
+require_once __DIR__ . '/../src/Repositories/migrations/migration.php';
+
+$migration = new Migration($pdo);
+$migration->migrate();
 
 require_once __DIR__ . '/../src/Interfaces/IUserRepository.php';
 require_once __DIR__ . '/../src/Repositories/UserRepository.php';

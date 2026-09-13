@@ -1,1 +1,0 @@
-ALTER TABLE `users` ADD COLUMN `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER `email_verified_at`;
