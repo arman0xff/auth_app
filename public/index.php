@@ -96,6 +96,23 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
         $userController->showModeratorPanel();
         break;
     }
+    case PROFILE_USER_ROUTE: {
+        $userController->showProfile();
+        break;
+    }
+    case EDIT_PROFILE_ROUTE: {
+        if($_SERVER["REQUEST_METHOD"] === "POST") {
+            $userController->editProfile();
+        }
+        else if($_SERVER["REQUEST_METHOD"] === "GET") {
+            require_once __DIR__ . '/../src/Views/EditProfile.php';
+        }
+        else {
+            http_response_code(405);
+            echo "Method not allowed.";
+        }
+        break;
+    }
     default: {
         http_response_code(404);
         echo "No route found.";

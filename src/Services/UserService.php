@@ -4,6 +4,8 @@ namespace Services;
 
 use DTOs\User\RegisterUserDto;
 use DTOs\User\LoginUserDto;
+use DTOs\User\DashboardUserDto;
+use DTOs\User\ProfileUserDto;
 use Exception;
 use Mailer\Mailer;
 use Models\User;
@@ -111,7 +113,6 @@ readonly class UserService {
         $_SESSION['name'] = $user->name;
         $_SESSION['email'] = $user->email;
         $_SESSION['email_verified_at'] = $user->emailVerifiedAt;
-        $_SESSION['role'] = $user->role;
 
         return $user;
     }
@@ -120,31 +121,80 @@ readonly class UserService {
         return $this->userRepo->getIdByEmail($email);
     }
 
-    public function tryOpenDashboard(&$error = ""): void {
+    public function tryOpenDashboard(&$error = ""): ?DashboardUserDto {
+        require_once __DIR__ . '/../DTOs/DashboardUserDto.php';
+
         if (!isset($_SESSION["id"])) {
             $error = "You must be logged in to access this page";
-            return;
+            return null;
         }
         
         if(!isset($_SESSION["email_verified_at"]) || $_SESSION["email_verified_at"] == null) {
             $error = "You must verify your email to access this page";
-            return;
-        }
-        if(!isset($_SESSION["role"])) {
-            $error = "You must have a role to access this page";
-            return;
+            return null;
         }
 
-        $_SESSION['role'] = $this->authService->refreshUserRole($_SESSION['id']);
+        $role = $this->authService->refreshUserRole($_SESSION['id']);
+        
+        $userDto = new DashboardUserDto($_SESSION['id'], $_SESSION['email'], $_SESSION['name'], $role);
 
-        if(!$this->authService->can('view_dashboard')) {
+        if(!$this->authService->can($userDto->role, 'view_dashboard')) {
             $error = "You don't have permission to view this page";
+            header('Location: ' . LOGIN_USER_ROUTE);
+            exit;
         }
 
         if($this->authService->requireLogin()) {
             header('Location: ' . LOGIN_USER_ROUTE);
             exit;
         }
+
+        return $userDto;
+    }
+
+    public function getUserData(int $userId): ?ProfileUserDto {
+        require_once __DIR__ . '/../DTOs/User/ProfileUserDto.php';
+
+        if(!isset($_SESSION['id'])) {
+            throw new Exception("Unauthorized access to profile data");
+        }
+
+        $user = $this->userRepo->findAllDataById($userId);
+
+        $name = explode(" ", $user['name']);
+
+        $userData = new ProfileUserDto($user['id'], $user['email'], $name[0], $name[1] ?? "not provided", $user['role'], 
+            $user['phone'] ?? "not provided", $user['location'] ?? "not provided", $user['date_of_birth'] ?? "not provided", $user['bio'] ?? "not provided");
+
+        return $userData;
+    }
+
+    public function updateUserProfile(int $userId, ?array $photo = null): bool {
+        if(!isset($_SESSION['id']) || $_SESSION['id'] !== $userId) {
+            throw new Exception("Unauthorized access to update profile");
+        }
+
+        if(isset($photo) && $photo['error'] === UPLOAD_ERR_OK) {
+            $uploadDir = __DIR__ . '/../../storage/uploads/';
+            $nextFileId = $this->getLastUploadId() + 1;
+            $targetFilePath = $uploadDir . "profile_image_" . $nextFileId . "_" . basename($photo['name']);
+
+            if(!move_uploaded_file($photo['tmp_name'], $targetFilePath)) {
+                throw new Exception("Failed to upload profile picture");
+            }
+
+           // return $this->userRepo->updateUserProfile($userId, $targetFilePath);
+        } else {
+//return $this->userRepo->updateUserProfile($userId, null);
+        }
+        return true;
+    }
+
+    public function getLastUploadId(): int {
+        $uploadDir = __DIR__ . '/../../storage/uploads/';
+        $files = array_diff(scandir($uploadDir, SCANDIR_SORT_ASCENDING), ['.', '..']);
+        $lastId = (int)str_replace(['profile_image_', '.jpg', '.png', '.jpeg', '.gif'], '', $files);
+        return $lastId;
     }
 
     // tokens

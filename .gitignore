@@ -3,3 +3,4 @@ src/DBConnection.php
 /storage/sessions/*
 !/storage/sessions/.gitignore
 src/storage/sessions/
+src/storage/uploads/

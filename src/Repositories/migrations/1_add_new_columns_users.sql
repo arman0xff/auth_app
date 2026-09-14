@@ -1,0 +1,6 @@
+ALTER TABLE `users`
+	ADD COLUMN `phone` CHAR(20) NULL DEFAULT NULL AFTER `created_at`,
+	ADD COLUMN `location` VARCHAR(50) NULL DEFAULT NULL AFTER `phone`,
+	ADD COLUMN `date_of_birth` DATE NULL AFTER `location`,
+	ADD COLUMN `bio` TINYTEXT NULL AFTER `date_of_birth`,
+	ADD COLUMN `image_id` INT NULL DEFAULT NULL AFTER `bio`;

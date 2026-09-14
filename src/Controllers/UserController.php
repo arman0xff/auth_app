@@ -41,6 +41,7 @@ readonly class UserController {
 
     public function login(): void {
         require_once __DIR__ . '/../Models/User.php';
+        require_once __DIR__ . "/../DTOs/User/LoginUserDto.php";
 
         $error = "";
         $success = $_SESSION['error'] ?? "";
@@ -55,7 +56,7 @@ readonly class UserController {
         try {
             $this->userService->login($userDto);
 
-            header('Location: ' . DASHBOARD_USER_ROUTE);
+            header('Location: ' . PROFILE_USER_ROUTE);
             exit;
         } catch (Exception $e) {
             $error = $e->getMessage();
@@ -68,11 +69,11 @@ readonly class UserController {
         require_once __DIR__ . '/../Views/Login.php';
     }
 
-    public function dashboard(): void {
+    public function dashboard(): void {        
         $error = "";
 
         try {
-            $this->userService->tryOpenDashboard($error);
+            $userDto = $this->userService->tryOpenDashboard($error);
         } catch (Exception $e) {
             $error = $e->getMessage();
         }
@@ -120,7 +121,7 @@ readonly class UserController {
         $success = "";
 
         if($_SERVER["REQUEST_METHOD"] == "POST") {
-            if(!isset($_POST['csrf_token']) || !validateCsrfToken($_POST['csrf_token'])) {
+            if(!validateCsrfToken($_POST['csrf_token'])) {
                 $error = "Invalid session token";
             }
             else {
@@ -157,7 +158,7 @@ readonly class UserController {
         $success = "";
 
         if($_SERVER["REQUEST_METHOD"] == "POST") {
-            if(!isset($_POST['csrf_token']) || !validateCsrfToken($_POST['csrf_token'])) {
+            if(!validateCsrfToken($_POST['csrf_token'])) {
                 $error = "Invalid session token";
             }
             else {
@@ -203,7 +204,7 @@ readonly class UserController {
             $_SESSION["token"] = $_GET["token"] ?? null;
         }
         else if($_SERVER["REQUEST_METHOD"] == "POST") {
-            if(!isset($_POST['csrf_token']) || !validateCsrfToken($_POST['csrf_token'])) {
+            if(!validateCsrfToken($_POST['csrf_token'])) {
                 $error = "Invalid session token";
             }
             else  {
@@ -253,9 +254,9 @@ readonly class UserController {
         }
         else {
             $users = [];
-            $_SESSION['role'] = $this->authService->refreshUserRole($_SESSION['id']);
+            $role = $this->authService->refreshUserRole($_SESSION['id']);
 
-            if(!$this->authService->can('access_admin_page')) {
+            if(!$this->authService->can($role, 'access_admin_page')) {
                 http_response_code(403);
                 $error = "You don't have permission to view this page";
             }
@@ -264,7 +265,7 @@ readonly class UserController {
             }
             else {
                 if($_SERVER["REQUEST_METHOD"] == "POST") {
-                    if(!isset($_POST['csrf_token']) || !validateCsrfToken($_POST['csrf_token'])) {
+                    if(!validateCsrfToken($_POST['csrf_token'])) {
                         $error = "Invalid session token";
                     }
                     else {
@@ -274,7 +275,7 @@ readonly class UserController {
                         if($userId == null || $newRole == null) {
                             $error = "User id and new role are required";
                         }
-                        else if(!$this->authService->can('manage_users')) {
+                        else if(!$this->authService->can($role, 'manage_users')) {
                             $error = "You don't have permission to change user roles";
                         }
                         else {
@@ -300,9 +301,9 @@ readonly class UserController {
         }
         else {
             $users = [];
-            $_SESSION['role'] = $this->authService->refreshUserRole($_SESSION['id']);
+            $role = $this->authService->refreshUserRole($_SESSION['id']);
 
-            if(!$this->authService->can('access_moderator_page')) {
+            if(!$this->authService->can($role, 'access_moderator_page')) {
                 http_response_code(403);
                 $error = "You don't have permission to view this page";
             }
@@ -315,5 +316,52 @@ readonly class UserController {
         }
 
         require_once __DIR__ . '/../Views/ModeratorPanel.php';
+    }
+
+    public function showProfile(): void {
+        if(!isset($_SESSION['id'])) {
+            header('Location: ' . LOGIN_USER_ROUTE);
+            exit;
+        }
+        else {
+            $userDto = $this->userService->getUserData($_SESSION['id']);
+        }
+
+        require_once __DIR__ . '/../Views/Profile.php';
+    }
+
+    public function editProfile(): void {
+        if(!isset($_SESSION['id'])) {
+            header('Location: ' . LOGIN_USER_ROUTE);
+            exit;
+        }
+        else {
+            $userId = $_SESSION['id'];
+            $errors = [];
+            $success = "";
+
+            if(!validateCsrfToken($_POST['csrf_token'])) {
+                $errors['csrf'] = "Invalid session token";
+            }
+            else {
+                try {
+                    $imageObj = null;
+                    if(isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
+                        $imageObj = $_FILES['profile_image'];
+                    }
+                    
+                    $this->userService->updateUserProfile($userId, $imageObj);
+                    if(empty($errors)) {
+                        $success = "Profile updated successfully";
+                    }
+                } catch(Exception $e) {
+                    $errors['exception'] = $e->getMessage();
+                }
+            }
+
+            $userDto = $this->userService->getUserData($userId);
+        }
+
+        require_once __DIR__ . '/../Views/EditProfile.php';
     }
 }

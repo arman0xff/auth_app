@@ -1,5 +1,8 @@
-<!DOCTYPE html>
+<?php use DTOs\User\DashboardUserDto;
+/** @var ?DashboardUserDto $userDto */
+?>
 
+<!DOCTYPE html>
 <html lang="en">
 <head>
       <meta charset="UTF-8">
@@ -20,19 +23,19 @@
                   <table>
                         <tr>
                               <th>Id</th>
-                              <td><?php echo htmlspecialchars($_SESSION['id']); ?></td>
+                              <td><?php echo htmlspecialchars($userDto->id); ?></td>
                         </tr>
                         <tr>
                               <th>Email</th>
-                              <td><?php echo htmlspecialchars($_SESSION['email']); ?></td>
+                              <td><?php echo htmlspecialchars($userDto->email); ?></td>
                         </tr>
                         <tr>
                               <th>Name</th>
-                              <td><?php echo htmlspecialchars($_SESSION['name']); ?></td>
+                              <td><?php echo htmlspecialchars($userDto->name); ?></td>
                         </tr>
                         <tr>
                               <th>Role</th>
-                              <td><?php echo htmlspecialchars($_SESSION['role']); ?></td>
+                              <td><?php echo htmlspecialchars($userDto->role); ?></td>
                         </tr>
                   </table>
 

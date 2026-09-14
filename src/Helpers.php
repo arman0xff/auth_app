@@ -28,6 +28,8 @@ const FORGET_PASSWORD_ROUTE = "/forget-password";
 const RESET_PASSWORD_ROUTE = "/reset-password";
 const ADMIN_PANEL_ROUTE = "/admin";
 const MODERATOR_PANEL_ROUTE = "/moderator";
+const PROFILE_USER_ROUTE = "/profile";
+const EDIT_PROFILE_ROUTE = "/edit-profile";
 
 enum E_SEND_MAIL_RETURN_CODES {
     case Success;

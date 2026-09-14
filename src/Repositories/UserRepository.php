@@ -55,9 +55,26 @@ readonly class UserRepository implements IUserRepository {
 
         $user = $sth->fetch();
 
-        if($user == null) {
-            return null;
-        }
+        return $user; 
+    }
+
+    public function findById(int $id): ?array {
+        $sql = "SELECT * FROM `users` WHERE `id` = :id";
+        $sth = $this->pdo->prepare($sql);
+        $sth->execute(["id" => $id]);
+
+        $user = $sth->fetch();
+
+        return $user; 
+    }
+
+    public function findAllDataById(int $id): ?array {
+        $sql = "SELECT `u`.`id`, `u`.`name`, `u`.`email`, `u`.`phone`, `u`.`location`, `u`.`date_of_birth`, `u`.`bio`, `dur`.`role` 
+            FROM `users` AS u JOIN `user_roles` AS ur ON `u`.`id` = `ur`.`user_id` JOIN `defined_user_roles` AS dur ON `ur`.`role_id` = `dur`.`id` WHERE `u`.`id` = :id";
+        $sth = $this->pdo->prepare($sql);
+        $sth->execute(["id" => $id]);
+
+        $user = $sth->fetch();
 
         return $user; 
     }
@@ -71,10 +88,6 @@ readonly class UserRepository implements IUserRepository {
 
         $user = $sth->fetch();
 
-        if($user == null) {
-            return null;
-        }
-
         return $user; 
     }
 
@@ -86,10 +99,6 @@ readonly class UserRepository implements IUserRepository {
         $sth->execute();
 
         $users = $sth->fetchAll();
-
-        if($users == null) {
-            return null;
-        }
 
         return $users; 
     }

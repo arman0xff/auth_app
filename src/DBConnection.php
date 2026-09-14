@@ -2,7 +2,7 @@
 
 $host = "127.0.0.1";
 $user = "root";
-$pass = "";
+$pass = "root";
 $db = "auth_app";
 
 try{

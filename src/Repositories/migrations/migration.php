@@ -28,7 +28,12 @@ class Migration {
 
         foreach($needMigrations as $migration) {
             $sql = file_get_contents(__DIR__ . "/" . $migration);
-            $sth = $this->pdo->exec($sql);
+            try {
+                $sth = $this->pdo->exec($sql);
+            } catch (PDOException $e) {
+                echo "Error occurred while executing migration: " . $e->getMessage();
+            }
+            
             $this->saveMigration($migration);
         }
     }

@@ -8,7 +8,9 @@ interface IUserRepository {
     public function getIdByEmail(string $email);
     public function findByEmail(string $email);
     public function findByEmailWithRole(string $email);
-    public function findAll(): ?array;
+    public function findById(int $id);
+    public function findAllDataById(int $id);
+    public function findAll();
     public function updatePassword(string $token, string $password);
 
     // tokens

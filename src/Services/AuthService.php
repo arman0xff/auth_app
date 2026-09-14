@@ -15,26 +15,26 @@ class AuthService {
         }
     }
 
-    public function can(string $permission): bool {
-        if(!isset($_SESSION['role'])) {
+    public function can(string $role, string $permission): bool {
+        if(!isset($role)) {
             return false;
         }
 
         switch($permission) {
             case 'manage_users': {
-                return $_SESSION['role'] === 'admin';
+                return $role === 'admin';
             }
             case 'access_moderator_page': {
-                return $_SESSION['role'] === 'moderator' || $_SESSION['role'] === 'admin';
+                return $role === 'moderator' || $role === 'admin';
             }
             case 'access_admin_page': {
-                return $_SESSION['role'] === 'admin';
+                return $role === 'admin';
             }
             case 'view_dashboard': {
-                return $_SESSION['role'] === 'user' || $_SESSION['role'] === 'moderator' || $_SESSION['role'] === 'admin';
+                return $role === 'user' || $role === 'moderator' || $role === 'admin';
             }
             case 'view_users': {
-                return $_SESSION['role'] === 'admin';
+                return $role === 'admin';
             }
             default: {
                 return false;
@@ -48,12 +48,12 @@ class AuthService {
         return !isset($_SESSION['id']);
     }
 
-    public function requireRole(string $role): bool {
-        return !isset($_SESSION['role']) || $_SESSION['role'] !== $role;
+    public function requireRole(string $currRole, string $requiredRole): bool {
+        return !isset($currRole) || $currRole !== $requiredRole;
     }
 
-    public function hasRole(string $role): bool {
-        return isset($_SESSION['role']) && $_SESSION['role'] === $role;
+    public function hasRole(string $currRole, string $role): bool {
+        return isset($currRole) && $currRole === $role;
     }
 
     public function changeUserRole(int $userId, string $newRole): bool {
