@@ -102,15 +102,9 @@ readonly class UserController {
         if($this->userService->verifyEmailVerificationToken($token)) {
             $_SESSION['message'] = "Your email has been verified.";
             
-            if($_SESSION['id']) {
-                header('Location: ' . DASHBOARD_USER_ROUTE);
-            }
-            else {
-                header('Location: ' . LOGIN_USER_ROUTE);
-            }
+            header('Location: ' . $_SESSION['id'] ? DASHBOARD_USER_ROUTE : LOGIN_USER_ROUTE);
         }
         else {
-            $message = "Invalid token";
             header('Location: ' . REGISTER_USER_ROUTE);
         }
         exit;
@@ -121,31 +115,26 @@ readonly class UserController {
         $success = "";
 
         if($_SERVER["REQUEST_METHOD"] == "POST") {
-            if(!validateCsrfToken($_POST['csrf_token'])) {
-                $error = "Invalid session token";
+            $email = $_POST["email"] ?? null;
+
+            if($email == null) {
+                $error = "Email is required";
+            }
+            else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $error = "Wrong email format";
             }
             else {
-                $email = $_POST["email"] ?? null;
+                $resultArr = $this->userService->resendVerificationMail($email);
 
-                if($email == null) {
-                    $error = "Email is required";
-                }
-                else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                    $error = "Wrong email format";
+                if($resultArr['status'] == E_SEND_MAIL_RETURN_CODES::Success) {
+                    $success = "Email successfully sent";
                 }
                 else {
-                    $resultArr = $this->userService->resendVerificationMail($email);
-
-                    if($resultArr['status'] == E_SEND_MAIL_RETURN_CODES::Success) {
-                        $success = "Email successfully sent";
-                    }
-                    else {
-                        $error = match($resultArr['status']) {
-                            E_SEND_MAIL_RETURN_CODES::NotFound => "Email not sent (some error occurred)",
-                            E_SEND_MAIL_RETURN_CODES::RateLimit => "You need to wait about 60 seconds, after sending new email",
-                            default => "Email not sent (some error occurred)",
-                        };
-                    }
+                    $error = match($resultArr['status']) {
+                        E_SEND_MAIL_RETURN_CODES::NotFound => "Email not sent (some error occurred)",
+                        E_SEND_MAIL_RETURN_CODES::RateLimit => "You need to wait about 60 seconds, after sending new email",
+                        default => "Email not sent (some error occurred)",
+                    };
                 }
             }
         }
@@ -158,36 +147,31 @@ readonly class UserController {
         $success = "";
 
         if($_SERVER["REQUEST_METHOD"] == "POST") {
-            if(!validateCsrfToken($_POST['csrf_token'])) {
-                $error = "Invalid session token";
+            $email = $_POST["email"] ?? null;
+
+            if($email == null) {
+                $error = "Email is required";
+            }
+            else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $error = "Wrong email format";
             }
             else {
-                $email = $_POST["email"] ?? null;
+                $userId = $this->userService->getIdByEmail($email);
 
-                if($email == null) {
-                    $error = "Email is required";
-                }
-                else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                    $error = "Wrong email format";
+                if($userId == null) {
+                    $error = "Email doesn't exist";
                 }
                 else {
-                    $userId = $this->userService->getIdByEmail($email);
-
-                    if($userId == null) {
-                        $error = "Email doesn't exist";
+                    $resultArr = $this->userService->sendResetPasswordMail($userId, $email);
+                    if($resultArr['status'] == E_SEND_MAIL_RETURN_CODES::Success) {
+                        $success = "Email successfully sent";
                     }
                     else {
-                        $resultArr = $this->userService->sendResetPasswordMail($userId, $email);
-                        if($resultArr['status'] == E_SEND_MAIL_RETURN_CODES::Success) {
-                            $success = "Email successfully sent";
-                        }
-                        else {
-                            $error = match($resultArr['status']) {
-                                E_SEND_MAIL_RETURN_CODES::NotFound => "Email not sent (some error occurred)",
-                                E_SEND_MAIL_RETURN_CODES::RateLimit => "You need to wait about 60 seconds, after sending new email",
-                                default => "Email not sent (some error occurred)",
-                            };
-                        }
+                        $error = match($resultArr['status']) {
+                            E_SEND_MAIL_RETURN_CODES::NotFound => "Email not sent (some error occurred)",
+                            E_SEND_MAIL_RETURN_CODES::RateLimit => "You need to wait about 60 seconds, after sending new email",
+                            default => "Email not sent (some error occurred)",
+                        };
                     }
                 }
             }
@@ -204,41 +188,36 @@ readonly class UserController {
             $_SESSION["token"] = $_GET["token"] ?? null;
         }
         else if($_SERVER["REQUEST_METHOD"] == "POST") {
-            if(!validateCsrfToken($_POST['csrf_token'])) {
-                $error = "Invalid session token";
+            $token = $_SESSION["token"] ?? null;
+
+            if($_SESSION["token"] != null) {
+                $_SESSION["token"] = null;
             }
-            else  {
-                $token = $_SESSION["token"] ?? null;
 
-                if($_SESSION["token"] != null) {
-                    $_SESSION["token"] = null;
-                }
-
-                if($token == null) {
-                    $error = "Token required";
+            if($token == null) {
+                $error = "Token required";
+            }
+            else {
+                if($_POST["new-password"] != $_POST["confirm-new-password"]) {
+                    $error = "Passwords are not the same";
+                    $_SESSION["token"] = $token;
                 }
                 else {
-                    if($_POST["new-password"] != $_POST["confirm-new-password"]) {
-                        $error = "Passwords are not the same";
-                        $_SESSION["token"] = $token;
-                    }
-                    else {
-                        try {
-                            if(!$this->userService->verifyResetPasswordToken($_SESSION["token"])) {
-                                $error = "Invalid token";
-                            }
-                            else if($this->userService->updatePassword($token, $_POST["new-password"])) {
-                                $_SESSION['message'] = "Password successfully changed";
-                                $_SESSION["token"] = null;
-                                header('Location: ' . LOGIN_USER_ROUTE);
-                                exit;
-                            }
-                            else {
-                                $error = "Failed to update password";
-                            }
-                        } catch(Exception $e) {
-                            $error = $e->getMessage();
+                    try {
+                        if(!$this->userService->verifyResetPasswordToken($_SESSION["token"])) {
+                            $error = "Invalid token";
                         }
+                        else if($this->userService->updatePassword($token, $_POST["new-password"])) {
+                            $_SESSION['message'] = "Password successfully changed";
+                            $_SESSION["token"] = null;
+                            header('Location: ' . LOGIN_USER_ROUTE);
+                            exit;
+                        }
+                        else {
+                            $error = "Failed to update password";
+                        }
+                    } catch(Exception $e) {
+                        $error = $e->getMessage();
                     }
                 }
             }
@@ -265,27 +244,22 @@ readonly class UserController {
             }
             else {
                 if($_SERVER["REQUEST_METHOD"] == "POST") {
-                    if(!validateCsrfToken($_POST['csrf_token'])) {
-                        $error = "Invalid session token";
+                    $userId = $_POST["user_id"] ?? null;
+                    $newRole = $_POST["new_role"] ?? null;
+
+                    if($userId == null || $newRole == null) {
+                        $error = "User id and new role are required";
+                    }
+                    else if(!$this->authService->can($role, 'manage_users')) {
+                        $error = "You don't have permission to change user roles";
                     }
                     else {
-                        $userId = $_POST["user_id"] ?? null;
-                        $newRole = $_POST["new_role"] ?? null;
-
-                        if($userId == null || $newRole == null) {
-                            $error = "User id and new role are required";
-                        }
-                        else if(!$this->authService->can($role, 'manage_users')) {
-                            $error = "You don't have permission to change user roles";
-                        }
-                        else {
-                            try {
-                                $this->authService->changeUserRole($userId, $newRole);
-                                header('Location: ' . ADMIN_PANEL_ROUTE);
-                                exit;
-                            } catch(Exception $e) {
-                                $error = $e->getMessage();
-                            }
+                        try {
+                            $this->authService->changeUserRole($userId, $newRole);
+                            header('Location: ' . ADMIN_PANEL_ROUTE);
+                            exit;
+                        } catch(Exception $e) {
+                            $error = $e->getMessage();
                         }
                     }
                 }
@@ -340,23 +314,18 @@ readonly class UserController {
             $errors = [];
             $success = "";
 
-            if(!validateCsrfToken($_POST['csrf_token'])) {
-                $errors['csrf'] = "Invalid session token";
-            }
-            else {
-                try {
-                    $imageObj = null;
-                    if(isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
-                        $imageObj = $_FILES['profile_image'];
-                    }
-                    
-                    $this->userService->updateUserProfile($userId, $imageObj);
-                    if(empty($errors)) {
-                        $success = "Profile updated successfully";
-                    }
-                } catch(Exception $e) {
-                    $errors['exception'] = $e->getMessage();
+            try {
+                $imageObj = null;
+                if(isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
+                    $imageObj = $_FILES['profile_image'];
                 }
+                
+                $this->userService->updateUserProfile($userId, $imageObj);
+                if(empty($errors)) {
+                    $success = "Profile updated successfully";
+                }
+            } catch(Exception $e) {
+                $errors['exception'] = $e->getMessage();
             }
 
             $userDto = $this->userService->getUserData($userId);

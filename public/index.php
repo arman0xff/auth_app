@@ -5,6 +5,7 @@ session_save_path(__DIR__ . "/../storage/sessions");
 use Controllers\UserController;
 use Services\UserService;
 use Services\AuthService;
+use Middlewares\CsrfMiddleware;
 
 use Repositories\UserRepository;
 use Repositories\AuthRepository;
@@ -12,10 +13,13 @@ use Repositories\AuthRepository;
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../src/DBConnection.php';
 require_once __DIR__ . '/../src/Helpers.php';
-require_once __DIR__ . '/../src/Repositories/migrations/migration.php';
 
-$migration = new Migration($pdo);
-$migration->migrate();
+session_start();
+
+require_once __DIR__ . '/../src/Middlewares/CsrfMiddleware.php';
+
+$csrfMiddleware = new CsrfMiddleware();
+$csrfMiddleware->handle();
 
 require_once __DIR__ . '/../src/Interfaces/IUserRepository.php';
 require_once __DIR__ . '/../src/Repositories/UserRepository.php';
@@ -29,12 +33,6 @@ $userRepo = new UserRepository($pdo);
 $authService = new AuthService(new AuthRepository($pdo));
 $userService = new UserService($userRepo, $authService);
 $userController = new UserController($userService, $authService);
-
-session_start();
-
-if(empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = generateRandomToken();
-}
 
 switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
     case '/':
