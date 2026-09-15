@@ -13,12 +13,12 @@ readonly class UserRepository implements IUserRepository {
 
     }
 
-    public function create(string $name, string $email, string $pass_hash): int {
-        $sql = "INSERT INTO `users` (name, email, password) VALUES(:name, :email, :pass)";
-
+    public function create(string $firstName, string $lastName, string $email, string $pass_hash): int {
+        $sql = "INSERT INTO `users` (firstName, lastName, email, password) VALUES(:firstName, :lastName, :email, :pass)";
         $sth = $this->pdo->prepare($sql);
         $sth->execute([
-            "name" => $name,
+            "firstName" => $firstName,
+            "lastName" => $lastName,
             "email" => $email,
             "pass" => $pass_hash
         ]);
@@ -69,8 +69,9 @@ readonly class UserRepository implements IUserRepository {
     }
 
     public function findAllDataById(int $id): ?array {
-        $sql = "SELECT `u`.`id`, `u`.`name`, `u`.`email`, `u`.`phone`, `u`.`location`, `u`.`date_of_birth`, `u`.`bio`, `dur`.`role` 
-            FROM `users` AS u JOIN `user_roles` AS ur ON `u`.`id` = `ur`.`user_id` JOIN `defined_user_roles` AS dur ON `ur`.`role_id` = `dur`.`id` WHERE `u`.`id` = :id";
+        $sql = "SELECT `u`.*, `dur`.`role` FROM `users` AS u JOIN `user_roles` AS ur ON `u`.`id` = `ur`.`user_id` 
+            JOIN `defined_user_roles` AS dur ON `ur`.`role_id` = `dur`.`id` WHERE `u`.`id` = :id";
+
         $sth = $this->pdo->prepare($sql);
         $sth->execute(["id" => $id]);
 
@@ -82,7 +83,6 @@ readonly class UserRepository implements IUserRepository {
     public function findByEmailWithRole(string $email): ?array {
         $sql = "SELECT `u`.`id`, `u`.`name`, `u`.`password`, `u`.`email_verified_at`, `dur`.`role` FROM `users` AS u 
             JOIN `user_roles` AS ur ON `u`.`id` = `ur`.`user_id` JOIN `defined_user_roles` AS dur ON `ur`.`role_id` = `dur`.`id` WHERE `u`.`email` = :email";
-            
         $sth = $this->pdo->prepare($sql);
         $sth->execute(["email" => $email]);
 
@@ -94,7 +94,6 @@ readonly class UserRepository implements IUserRepository {
     public function findAll(): ?array {
         $sql = "SELECT `u`.`id`, `u`.`name`, `u`.`email`, `u`.`email_verified_at`, `u`.`created_at`, `dur`.`role`
             FROM `users` AS u JOIN `user_roles` AS ur ON `u`.`id` = `ur`.`user_id` JOIN `defined_user_roles` AS dur ON `ur`.`role_id` = `dur`.`id`";
-            
         $sth = $this->pdo->prepare($sql);
         $sth->execute();
 
@@ -137,7 +136,6 @@ readonly class UserRepository implements IUserRepository {
             $this->pdo->beginTransaction();
             $sql = "UPDATE `users` JOIN `user_tokens` ON `users`.`id` = `user_tokens`.`user_id` SET `users`.`email_verified_at` = NOW() WHERE `user_tokens`.`token` = :token 
                 AND `user_tokens`.`type` = 'email_verify' AND `users`.`email_verified_at` IS NULL AND `user_tokens`.`token_sent_at` > NOW() - INTERVAL 1 HOUR";
-
             $sth = $this->pdo->prepare($sql);
             $sth->execute(["token" => $token]);
 
@@ -232,5 +230,16 @@ readonly class UserRepository implements IUserRepository {
         $sth->execute(["token" => $token]);
 
         return $sth->fetch();
+    }
+
+    public function updateUserProfile(int $userId, array $data):bool {
+        $sql = "UPDATE `users` SET `name` = :name, `phone` = :phone, `location` = :location, `date_of_birth` = :date_of_birth, `bio` = :bio WHERE `id` = :user_id";
+        $sth = $this->pdo->prepare($sql);
+        $sth->execute([
+            "name" => $data["name"], "phone" => $data["phone"], "location" => $data["location"], 
+            "date_of_birth" => $data["date_of_birth"], "bio" => $data["bio"]]
+        );
+
+        return $sth->rowCount() > 0;
     }
 }

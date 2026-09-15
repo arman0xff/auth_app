@@ -11,7 +11,9 @@
 </head>
 <body>
     <main class="panel">
-        <img src="image.png" alt="profile photo">
+        <div class="profile-image">
+            <img src="<?php echo($userDto->profileImageUrl ?? "storage/images/default-image.png")?>" alt="profile photo">
+        </div>
         <table>
             <tr><td>First Name: </td><td><?php echo htmlspecialchars($userDto->firstName); ?></td></tr>
             <tr><td>Last Name: </td><td><?php echo htmlspecialchars($userDto->lastName); ?></td></tr>
@@ -21,7 +23,7 @@
             <tr><td>Bio: </td><td><?php echo htmlspecialchars($userDto->bio); ?></td></tr>
         </table>
 
-        <a href="edit-profile.php" class="router-button">Edit</a>
+        <a href="<?php echo(EDIT_PROFILE_ROUTE)?>" class="router-button">Edit</a>
 
         <form method="post" action="add-new-post">
             <label for="header">Write a header</label>

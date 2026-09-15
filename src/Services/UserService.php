@@ -18,8 +18,12 @@ readonly class UserService {
     }
 
     public function register(RegisterUserDto $userDto, array &$errors): int {
-        if (strlen($userDto->name) < ACCOUNT_REG_MIN_NAME_LEN || strlen($userDto->name) > ACCOUNT_REG_MAX_NAME_LEN) {
-            $errors['name'] = "Wrong name length\n";
+        if (strlen($userDto->firstName) < ACCOUNT_REG_MIN_FIRST_NAME_LEN || strlen($userDto->firstName) > ACCOUNT_REG_MAX_FIRST_NAME_LEN) {
+            $errors['name'] = "Wrong first name length\n";
+            return 0;
+        } 
+        if (strlen($userDto->firstName) < ACCOUNT_REG_MIN_LAST_NAME_LEN || strlen($userDto->firstName) > ACCOUNT_REG_MAX_LAST_NAME_LEN) {
+            $errors['name'] = "Wrong last name length\n";
             return 0;
         } 
         if (!filter_var($userDto->email, FILTER_VALIDATE_EMAIL)) { // 255
@@ -38,7 +42,7 @@ readonly class UserService {
         $userToken = generateRandomToken();
         $pass_hash = password_hash($userDto->password, PASSWORD_DEFAULT);
 
-        $userId = $this->userRepo->create($userDto->name, $userDto->email, $pass_hash);
+        $userId = $this->userRepo->create($userDto->firstName, $userDto->lastName, $userDto->email, $pass_hash);
         
         if($userId == 0) {
             throw new Exception("Failed to create user");
@@ -56,7 +60,7 @@ readonly class UserService {
 
         require_once __DIR__ . '/../Mailer.php';
 
-        Mailer::sendVerificationMail($userDto->email, $userDto->name, $userToken);
+        Mailer::sendVerificationMail($userDto->email, $userDto->firstName, $userToken);
 
         return $userId;
     }
@@ -136,7 +140,7 @@ readonly class UserService {
 
         $role = $this->authService->refreshUserRole($_SESSION['id']);
         
-        $userDto = new DashboardUserDto($_SESSION['id'], $_SESSION['email'], $_SESSION['name'], $role);
+        $userDto = new DashboardUserDto($_SESSION['id'], $_SESSION['email'], $_SESSION['first_name'], $_SESSION['last_name'], $role);
 
         if(!$this->authService->can($userDto->role, 'view_dashboard')) {
             $error = "You don't have permission to view this page";
@@ -169,32 +173,94 @@ readonly class UserService {
         return $userData;
     }
 
-    public function updateUserProfile(int $userId, ?array $photo = null): bool {
-        if(!isset($_SESSION['id']) || $_SESSION['id'] !== $userId) {
+    public function updateUserProfile(ProfileUserDto $dto, ?array $photo, $isImageDelete): bool {
+        if(!isset($_SESSION['id']) || $_SESSION['id'] !== $dto->id) {
             throw new Exception("Unauthorized access to update profile");
         }
 
+        if (strlen($dto->firstName) < ACCOUNT_REG_MIN_FIRST_NAME_LEN || strlen($dto->firstName) > ACCOUNT_REG_MAX_FIRST_NAME_LEN) {
+            $errors['name'] = "Wrong first name length\n";
+            return 0;
+        } 
+        if (strlen($dto->firstName) < ACCOUNT_REG_MIN_LAST_NAME_LEN || strlen($dto->firstName) > ACCOUNT_REG_MAX_LAST_NAME_LEN) {
+            $errors['name'] = "Wrong last name length\n";
+            return 0;
+        }
+        if($this->checkEmailExist($dto->email)) {
+            $errors['email'] = "Email already exists\n";
+            return 0;
+        }
+
+        $uploadDir = __DIR__ . '/../../public/storage/uploads/';
+
+        if($isImageDelete) {
+            $this->deleteOldProfileImage($dto->id, $uploadDir);
+        }
+
         if(isset($photo) && $photo['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = __DIR__ . '/../../storage/uploads/';
+            $this->deleteOldProfileImage($dto->id, $uploadDir);
+            
             $nextFileId = $this->getLastUploadId() + 1;
             $targetFilePath = $uploadDir . "profile_image_" . $nextFileId . "_" . basename($photo['name']);
 
             if(!move_uploaded_file($photo['tmp_name'], $targetFilePath)) {
                 throw new Exception("Failed to upload profile picture");
             }
-
-           // return $this->userRepo->updateUserProfile($userId, $targetFilePath);
-        } else {
-//return $this->userRepo->updateUserProfile($userId, null);
         }
-        return true;
+
+        return $this->userRepo->updateUserProfile($dto->id, [
+            'first_name' => $dto->firstName,
+            'last_name' => $dto->lastName,
+            'phone' => $dto->phone,
+            'location' => $dto->location,
+            'date_of_birth' => $dto->dateOfBirth,
+            'bio' => $dto->bio
+        ]);
     }
 
     public function getLastUploadId(): int {
-        $uploadDir = __DIR__ . '/../../storage/uploads/';
-        $files = array_diff(scandir($uploadDir, SCANDIR_SORT_ASCENDING), ['.', '..']);
-        $lastId = (int)str_replace(['profile_image_', '.jpg', '.png', '.jpeg', '.gif'], '', $files);
+        $uploadDir = __DIR__ . '/../../public/storage/uploads/';
+        $files = array_diff(scandir($uploadDir), ['.', '..']);
+        $files = array_filter($files, function($file) {
+            return str_starts_with($file, "profile_image_");
+        });
+
+        if(sizeof($files) < 1) {
+            return 0;
+        }
+
+        natsort($files);
+        $formatted = explode("_", end($files));
+        $lastId = (int)$formatted[2];
+
         return $lastId;
+    }
+
+    public function deleteOldProfileImage($userId, $uploadDir): void {
+        if(!is_dir($uploadDir)) {
+            return;
+        }
+
+        $files = array_diff(scandir($uploadDir), ['.', '..']);
+        foreach ($files as $file) {
+            $formatted = explode('_', $file);
+            if (sizeof($formatted) >= 3 && $userId === (int)$formatted[2]) {
+                @unlink($uploadDir . $file);
+            }
+        }
+    }
+
+    public function getProfileImageUrl(int $imageId): ?string {
+        $uploadDir = __DIR__ . '/../../public/storage/uploads/';
+        $files = array_diff(scandir($uploadDir, SCANDIR_SORT_ASCENDING), ['.', '..']);
+        foreach ($files as $file) {
+            $formatted = explode("_", $file);
+
+            if (file_exists($uploadDir . $file) && sizeof($formatted) >= 3 && $imageId === (int)$formatted[2]) {
+                return '/storage/uploads/' . $file;
+            }
+        }
+        return null;
     }
 
     // tokens

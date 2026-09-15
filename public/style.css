@@ -197,3 +197,14 @@ td {
     background-color: #ca303f;
     color: white;
 }
+
+.profile-image {
+    width: 150px;
+    height: 150px;
+    border-radius: 30%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #272525;
+}

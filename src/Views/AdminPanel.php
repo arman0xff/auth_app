@@ -20,7 +20,8 @@
                         <thead>
                               <tr>
                                     <th>Id</th>
-                                    <th>Name</th>
+                                    <th>First name</th>
+                                    <th>Last name</th>
                                     <th>Email</th>
                                     <th>Role</th>
                                     <th>Email verification status</th>
@@ -33,7 +34,8 @@
                               <?php foreach($users as $user) { ?>
                                     <tr>
                                           <td><?php echo htmlspecialchars($user['id']); ?></td>
-                                          <td><?php echo htmlspecialchars($user['name']); ?></td>
+                                          <td><?php echo htmlspecialchars($user['first_name']); ?></td>
+                                          <td><?php echo htmlspecialchars($user['last_name']); ?></td>
                                           <td><?php echo htmlspecialchars($user['email']); ?></td>
                                           <td><?php echo htmlspecialchars($user['role']); ?></td>
                                           <td><span class="badge <?php echo $user['email_verified_at'] != null ? "badge-success" : "badge-danger"; ?>">

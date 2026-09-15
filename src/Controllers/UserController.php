@@ -4,6 +4,7 @@ namespace Controllers;
 
 use DTOs\User\RegisterUserDto;
 use DTOs\User\LoginUserDto;
+use DTOs\User\ProfileUserDto;
 use Services\UserService;
 use Services\AuthService;
 use Exception;
@@ -20,7 +21,7 @@ readonly class UserController {
         $errors = [];
         unset($_SESSION['message']);
         
-        $newUserDto = new RegisterUserDto($_POST['name'] ?? '', $_POST['email'] ?? '', $_POST['password'] ?? '');
+        $newUserDto = new RegisterUserDto($_POST['first_name'] ?? '', $_POST['last_name'] ?? '', $_POST['email'] ?? '', $_POST['password'] ?? '');
 
         try {
             if($this->userService->register($newUserDto, $errors)) {
@@ -293,12 +294,15 @@ readonly class UserController {
     }
 
     public function showProfile(): void {
+        require_once __DIR__ . '/../DTOs/User/ProfileUserDto.php';
+
         if(!isset($_SESSION['id'])) {
             header('Location: ' . LOGIN_USER_ROUTE);
             exit;
         }
         else {
             $userDto = $this->userService->getUserData($_SESSION['id']);
+            $userDto->profileImageUrl = $this->userService->getProfileImageUrl($_SESSION['id']);
         }
 
         require_once __DIR__ . '/../Views/Profile.php';
@@ -319,8 +323,22 @@ readonly class UserController {
                 if(isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
                     $imageObj = $_FILES['profile_image'];
                 }
-                
-                $this->userService->updateUserProfile($userId, $imageObj);
+
+                $shouldImageDelete = isset($_POST['delete_image']) && $_POST['delete_image'] === '1';
+
+                $userDto = new ProfileUserDto(
+                    $userId,
+                    $_SESSION['email'] ?? '',
+                    trim($_POST['first_name'] ?? ''),
+                    trim($_POST['last_name'] ?? ''),
+                    $_SESSION['role'] ?? 'user',
+                    trim($_POST['phone'] ?? '') ?: null,
+                    trim($_POST['location'] ?? '') ?: null,
+                    trim($_POST['dob'] ?? '') ?: null,
+                    trim($_POST['bio'] ?? '') ?: null
+                );      
+
+                $this->userService->updateUserProfile($userDto, $imageObj, $shouldImageDelete);
                 if(empty($errors)) {
                     $success = "Profile updated successfully";
                 }

@@ -1,6 +1,6 @@
 <?php
 
-session_save_path(__DIR__ . "/../storage/sessions");
+session_save_path(__DIR__ . "/storage/sessions");
 
 use Controllers\UserController;
 use Services\UserService;

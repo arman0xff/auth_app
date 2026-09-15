@@ -30,8 +30,12 @@
                               <td><?php echo htmlspecialchars($userDto->email); ?></td>
                         </tr>
                         <tr>
-                              <th>Name</th>
-                              <td><?php echo htmlspecialchars($userDto->name); ?></td>
+                              <th>First name</th>
+                              <td><?php echo htmlspecialchars($userDto->firstName); ?></td>
+                        </tr>
+                        <tr>
+                              <th>Last name</th>
+                              <td><?php echo htmlspecialchars($userDto->lastName); ?></td>
                         </tr>
                         <tr>
                               <th>Role</th>

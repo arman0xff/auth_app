@@ -1,6 +1,4 @@
 src/DBConnection.php
 .vscode/settings.json
-/storage/sessions/*
-!/storage/sessions/.gitignore
-src/storage/sessions/
-src/storage/uploads/
+public/storage/sessions/
+public/storage/uploads/

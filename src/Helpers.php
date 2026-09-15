@@ -12,8 +12,11 @@ function validateCsrfToken(string $token): bool {
     return isset($_SESSION['csrf_token']) && $_SESSION['csrf_token'] === $token;
 }
 
-const ACCOUNT_REG_MIN_NAME_LEN = 3;
-const ACCOUNT_REG_MAX_NAME_LEN = 24;
+const ACCOUNT_REG_MIN_FIRST_NAME_LEN = 3;
+const ACCOUNT_REG_MAX_FIRST_NAME_LEN = 24;
+
+const ACCOUNT_REG_MIN_LAST_NAME_LEN = 3;
+const ACCOUNT_REG_MAX_LAST_NAME_LEN = 24;
 
 const ACCOUNT_REG_MIN_PASS_LEN = 3;
 const ACCOUNT_REG_MAX_PASS_LEN = 32;
