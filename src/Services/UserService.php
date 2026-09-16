@@ -103,7 +103,7 @@ readonly class UserService {
         }
 
         $user = new User(
-            (int)$resArray['id'], $resArray['name'], $userDto->email, $resArray['password'], $resArray['role'],
+            (int)$resArray['id'], $resArray['first_name'], $resArray['last_name'], $userDto->email, $resArray['password'], $resArray['role'],
             $resArray['email_verified_at']
         );
 
@@ -114,7 +114,8 @@ readonly class UserService {
         session_regenerate_id(true);
 
         $_SESSION['id'] = $user->id;
-        $_SESSION['name'] = $user->name;
+        $_SESSION['first_name'] = $user->firstName;
+        $_SESSION['last_name'] = $user->lastName;
         $_SESSION['email'] = $user->email;
         $_SESSION['email_verified_at'] = $user->emailVerifiedAt;
 
@@ -126,7 +127,7 @@ readonly class UserService {
     }
 
     public function tryOpenDashboard(&$error = ""): ?DashboardUserDto {
-        require_once __DIR__ . '/../DTOs/DashboardUserDto.php';
+        require_once __DIR__ . '/../DTOs/User/DashboardUserDto.php';
 
         if (!isset($_SESSION["id"])) {
             $error = "You must be logged in to access this page";
@@ -165,9 +166,11 @@ readonly class UserService {
 
         $user = $this->userRepo->findAllDataById($userId);
 
-        $name = explode(" ", $user['name']);
+        if($user == null) {
+            return null;
+        }
 
-        $userData = new ProfileUserDto($user['id'], $user['email'], $name[0], $name[1] ?? "not provided", $user['role'], 
+        $userData = new ProfileUserDto($user['id'], $user['email'], $user['first_name'], $user['last_name'], $user['role'], 
             $user['phone'] ?? "not provided", $user['location'] ?? "not provided", $user['date_of_birth'] ?? "not provided", $user['bio'] ?? "not provided");
 
         return $userData;

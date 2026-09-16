@@ -11,6 +11,11 @@
 </head>
 <body>
     <main class="panel">
+        <?php if(!empty($error)) {?>
+            <p class="auth-switch">
+                  <?php echo $error; ?> <a href="<?php echo PROFILE_USER_ROUTE?>" class="router-link">Return to your profile</a>
+            </p>
+      <?php } else { ?>
         <div class="profile-image">
             <img src="<?php echo($userDto->profileImageUrl ?? "storage/images/default-image.png")?>" alt="profile photo">
         </div>
@@ -42,6 +47,7 @@
                 <a href="delete-post.php?post_id=1" class="router-button">Delete</a>
             </article>
         </div>
+    <?php } ?>
     </main>
 </body>
 </html>

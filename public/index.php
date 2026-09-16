@@ -35,8 +35,15 @@ $userService = new UserService($userRepo, $authService);
 $userController = new UserController($userService, $authService);
 
 switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
-    case '/':
+    case '/': {
+
+    }
     case REGISTER_USER_ROUTE: {
+        if (isset($_SESSION["id"])) {
+            header('Location: ' . DASHBOARD_USER_ROUTE);
+            exit;
+        }
+
         if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $userController->register();
         }
@@ -50,6 +57,11 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
         break;
     }
     case LOGIN_USER_ROUTE: {
+        if (isset($_SESSION["id"]) && empty($_GET["redirect"])) {
+            header('Location: ' . DASHBOARD_USER_ROUTE);
+            exit;
+        }
+        
         if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $userController->login();
         }
@@ -75,23 +87,69 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
         break;
     }
     case RESEND_MAIL_ROUTE: {
-        $userController->resendMail();
+        if($_SERVER["REQUEST_METHOD"] == "POST") {
+            $userController->resendMail();
+        }
+        else {
+            http_response_code(405);
+            echo("Method not allowed.");
+        }
         break;
     }
     case FORGET_PASSWORD_ROUTE: {
-        $userController->forgetPassword();
+        if($_SERVER["REQUEST_METHOD"] == "POST") {
+            $userController->forgetPassword();
+        }
+        else {
+            http_response_code(405);
+            echo("Method not allowed.");
+        }
         break;
     }
     case RESET_PASSWORD_ROUTE: {
-        $userController->resetPassword();
+        if($_SERVER["REQUEST_METHOD"] == "POST") {
+            $userController->resetPassword();
+        }
+        else if($_SERVER["REQUEST_METHOD"] == "GET") {
+            $userController->showPasswordResetForm();
+        }
+        else {
+            http_response_code(405);
+            echo("Method not allowed.");
+        }
         break;
     }
     case ADMIN_PANEL_ROUTE: {
-        $userController->showAdminPanel();
+        if(!isset($_SESSION['id'])) {
+            header('Location: ' . LOGIN_USER_ROUTE);
+            exit;
+        }
+
+        if($_SERVER["REQUEST_METHOD"] == "POST") {
+            $userController->showAdminPanel();
+        }
+        else if($_SERVER["REQUEST_METHOD"] == "GET") {
+            $userController->editUserDataInAdminPanel();
+        }
+        else {
+            http_response_code(405);
+            echo("Method not allowed.");
+        }
         break;
     }
     case MODERATOR_PANEL_ROUTE: {
-        $userController->showModeratorPanel();
+        if(!isset($_SESSION['id'])) {
+            header('Location: ' . LOGIN_USER_ROUTE);
+            exit;
+        }
+
+        if($_SERVER["REQUEST_METHOD"] == "GET") {
+            $userController->showModeratorPanel();
+        }
+        else {
+            http_response_code(405);
+            echo("Method not allowed.");
+        }
         break;
     }
     case PROFILE_USER_ROUTE: {

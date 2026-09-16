@@ -1,0 +1,1 @@
+ALTER TABLE `users` CHANGE COLUMN `name` `first_name` VARCHAR(24) NOT NULL COLLATE 'utf8mb4_0900_ai_ci' AFTER `id`, ADD COLUMN `last_name` VARCHAR(24) NOT NULL AFTER `first_name`;
