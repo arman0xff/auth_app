@@ -28,24 +28,31 @@
             <tr><td>Bio: </td><td><?php echo htmlspecialchars($userDto->bio); ?></td></tr>
         </table>
 
-        <a href="<?php echo(EDIT_PROFILE_ROUTE)?>" class="router-button">Edit</a>
+        <?php if (empty($_GET['id'])) {?>
+            <a href="<?= EDIT_PROFILE_ROUTE ?>" class="router-button">Edit</a>
 
-        <form method="post" action="add-new-post">
-            <label for="header">Write a header</label>
-            <input type="text" id="header" name="header" placeholder="Type header" required>
-            <label for="maintext">Write a main text</label>
-            <textarea name="maintext" id="maintext" placeholder="Type main text"></textarea>
-            <button type="submit">Add new post</button>
-        </form>
+            <h2 class="post-header">Add new post</h2>
+            <form method="post" action="/profile/add-new-post" class="post-form">
+                <label for="header">Write a header</label>
+                <input type="text" id="header" name="header" placeholder="Type header" required>
+                <label for="maintext">Write a main text</label>
+                <textarea name="maintext" id="maintext" placeholder="Type main text"></textarea>
+                <button type="submit">Add new post</button>
+            </form>
+        <?php } ?>
 
         <div>
-            <article>
-                <h2>Placeholder header</h2>
-                <p>Placeholder text</p>
-                <p>Placeholder date</p>
-                <a href="edit-post.php?post_id=1" class="router-button">Edit</a>
-                <a href="delete-post.php?post_id=1" class="router-button">Delete</a>
-            </article>
+            <?php if (!empty($userPosts)) {?>
+                <?php foreach($userPosts as $post) {?>
+                    <article>
+                        <h2><?php echo $post['title']; ?></h2>
+                        <p><?php echo $post['text']; ?></p>
+                        <p><?php echo $post['created_at']; ?></p>
+                        <a href="edit-post.php?post_id=1" class="router-button">Edit</a>
+                        <a href="delete-post.php?post_id=1" class="router-button">Delete</a>
+                    </article>
+                <?php } ?>
+            <?php } ?>
         </div>
     <?php } ?>
     </main>

@@ -7,6 +7,7 @@ use DTOs\User\LoginUserDto;
 use DTOs\User\ProfileUserDto;
 use Services\UserService;
 use Services\AuthService;
+use Services\PostService;
 use Exception;
 use E_SEND_MAIL_RETURN_CODES;
 
@@ -302,6 +303,7 @@ readonly class UserController {
             }
             else {
                 $userDto->profileImageUrl = $this->userService->getProfileImageUrl($profileId);
+                // $userPosts = $this->postService->getUserPostsByUserId($profileId);
             }
         }
 

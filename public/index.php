@@ -5,10 +5,13 @@ session_save_path(__DIR__ . "/storage/sessions");
 use Controllers\UserController;
 use Services\UserService;
 use Services\AuthService;
+use Controllers\PostController;
+use Services\PostService;
 use Middlewares\CsrfMiddleware;
 
 use Repositories\UserRepository;
 use Repositories\AuthRepository;
+use Repositories\PostRepository;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../src/DBConnection.php';
@@ -24,15 +27,28 @@ $csrfMiddleware->handle();
 require_once __DIR__ . '/../src/Interfaces/IUserRepository.php';
 require_once __DIR__ . '/../src/Repositories/UserRepository.php';
 require_once __DIR__ . '/../src/Services/UserService.php';
+
 require_once __DIR__ . '/../src/Interfaces/IAuthRepository.php';
 require_once __DIR__ . '/../src/Repositories/AuthRepository.php';
 require_once __DIR__ . '/../src/Services/AuthService.php';
+
 require_once __DIR__ . '/../src/Controllers/UserController.php';
 
+require_once __DIR__ . '/../src/Controllers/PostController.php';
+require_once __DIR__ . '/../src/Interfaces/IPostRepository.php';
+require_once __DIR__ . '/../src/Repositories/PostRepository.php';
+require_once __DIR__ . '/../src/Services/PostService.php';
+
+$authRepo = new AuthRepository($pdo);
 $userRepo = new UserRepository($pdo);
+$postRepo = new PostRepository($pdo);
+
 $authService = new AuthService(new AuthRepository($pdo));
 $userService = new UserService($userRepo, $authService);
+$postService = new PostService($postRepo);
+
 $userController = new UserController($userService, $authService);
+$postController = new PostController($userService, $authService);
 
 switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
     case '/': {
@@ -154,6 +170,21 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
     }
     case PROFILE_USER_ROUTE: {
         $userController->showProfile();
+        break;
+    }
+    case "/profile/add-new-post": {
+        if(!isset($_SESSION['id'])) {
+            header('Location: ' . LOGIN_USER_ROUTE);
+            exit;
+        }
+        
+        if($_SERVER["REQUEST_METHOD"] === "POST") {
+            $postController->addNewPost();
+        }
+        else {
+            http_response_code(405);
+            echo("Method not allowed.");
+        }
         break;
     }
     case EDIT_PROFILE_ROUTE: {
