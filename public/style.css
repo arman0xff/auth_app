@@ -37,10 +37,20 @@ h1 {
     text-align: center;
 }
 
-h2 {
+h2, .post-header {
     margin-top: 0;
     margin-bottom: 20px;
     text-align: center;
+}
+
+.post-header {
+    margin-top: 10px;
+    overflow-wrap: break-word;
+}
+
+.post-text { 
+    overflow-wrap: break-word;
+    font-size: 14px;
 }
 
 label {

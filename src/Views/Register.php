@@ -13,7 +13,7 @@
 
         <div class="form-group">
             <label> First Name</label>
-            <input type="text" name="first_name" id="first_name" placeholder="Arman" required>
+            <input type="text" name="first_name" id="first_name" required>
             <?php if (!empty($errors['first_name'])) { ?>
                 <span class="error"><?php echo $errors['first_name']; ?></span>
             <?php } ?>
@@ -21,7 +21,7 @@
 
         <div class="form-group">
             <label> Last Name</label>
-            <input type="text" name="last_name" id="last_name" placeholder="Vardanyan" required>
+            <input type="text" name="last_name" id="last_name" required>
             <?php if (!empty($errors['last_name'])) { ?>
                 <span class="error"><?php echo $errors['last_name']; ?></span>
             <?php } ?>
@@ -29,7 +29,7 @@
 
         <div class="form-group">
             <label> Email</label>
-            <input type="email" name="email" id="email" placeholder="arman@email.com" required>
+            <input type="email" name="email" id="email" required>
             <?php if (!empty($errors['email'])) { ?>
                 <span class="error"><?php echo $errors['email']; ?></span>
             <?php } ?>
@@ -37,7 +37,7 @@
 
         <div class="form-group">
             <label> Password</label>
-            <input type="password" id="password" name="password" placeholder="******" required>
+            <input type="password" id="password" name="password" required>
             <?php if (!empty($errors['password'])) { ?>
                 <span class="error"><?php echo $errors['password']; ?></span>
             <?php } ?>

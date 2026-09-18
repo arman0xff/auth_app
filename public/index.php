@@ -47,8 +47,10 @@ $authService = new AuthService(new AuthRepository($pdo));
 $userService = new UserService($userRepo, $authService);
 $postService = new PostService($postRepo);
 
-$userController = new UserController($userService, $authService);
-$postController = new PostController($userService, $authService);
+$userController = new UserController($userService, $authService, $postService);
+$postController = new PostController($postService, $userService);
+
+$requestMethod = $_SERVER["REQUEST_METHOD"];
 
 switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
     case '/': {
@@ -60,10 +62,10 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
             exit;
         }
 
-        if ($_SERVER["REQUEST_METHOD"] === "POST") {
+        if ($requestMethod === "POST") {
             $userController->register();
         }
-        else if ($_SERVER["REQUEST_METHOD"] === "GET") {
+        else if ($requestMethod === "GET") {
             $userController->showRegisterForm();
         }
         else {
@@ -78,10 +80,10 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
             exit;
         }
         
-        if ($_SERVER["REQUEST_METHOD"] === "POST") {
+        if ($requestMethod === "POST") {
             $userController->login();
         }
-        else if ($_SERVER["REQUEST_METHOD"] === "GET") {
+        else if ($requestMethod === "GET") {
             $userController->showLoginForm();
         }
         else {
@@ -103,7 +105,7 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
         break;
     }
     case RESEND_MAIL_ROUTE: {
-        if($_SERVER["REQUEST_METHOD"] == "POST") {
+        if($requestMethod === "POST") {
             $userController->resendMail();
         }
         else {
@@ -113,7 +115,7 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
         break;
     }
     case FORGET_PASSWORD_ROUTE: {
-        if($_SERVER["REQUEST_METHOD"] == "POST") {
+        if($requestMethod === "POST") {
             $userController->forgetPassword();
         }
         else {
@@ -123,10 +125,10 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
         break;
     }
     case RESET_PASSWORD_ROUTE: {
-        if($_SERVER["REQUEST_METHOD"] == "POST") {
+        if($requestMethod === "POST") {
             $userController->resetPassword();
         }
-        else if($_SERVER["REQUEST_METHOD"] == "GET") {
+        else if($requestMethod === "GET") {
             $userController->showPasswordResetForm();
         }
         else {
@@ -141,10 +143,10 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
             exit;
         }
 
-        if($_SERVER["REQUEST_METHOD"] == "POST") {
+        if($requestMethod === "POST") {
             $userController->showAdminPanel();
         }
-        else if($_SERVER["REQUEST_METHOD"] == "GET") {
+        else if($requestMethod === "GET") {
             $userController->editUserDataInAdminPanel();
         }
         else {
@@ -159,7 +161,7 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
             exit;
         }
 
-        if($_SERVER["REQUEST_METHOD"] == "GET") {
+        if($requestMethod === "GET") {
             $userController->showModeratorPanel();
         }
         else {
@@ -172,13 +174,13 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
         $userController->showProfile();
         break;
     }
-    case "/profile/add-new-post": {
+    case ADD_NEW_POST_ROUTE: {
         if(!isset($_SESSION['id'])) {
             header('Location: ' . LOGIN_USER_ROUTE);
             exit;
         }
         
-        if($_SERVER["REQUEST_METHOD"] === "POST") {
+        if($requestMethod === "POST") {
             $postController->addNewPost();
         }
         else {
@@ -187,11 +189,44 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
         }
         break;
     }
+    case EDIT_POST_ROUTE: {
+        if(!isset($_SESSION['id'])) {
+            header('Location: ' . LOGIN_USER_ROUTE);
+            exit;
+        }
+        
+        if($requestMethod === "POST") {
+            $postController->updatePost();
+        }
+        else if($requestMethod === "GET") {
+            $postController->showProfileWithEditablePost();
+        }
+        else {
+            http_response_code(405);
+            echo("Method not allowed.");
+        }
+        break;
+    }
+    case DELETE_POST_ROUTE: {
+        if(!isset($_SESSION['id'])) {
+            header('Location: ' . LOGIN_USER_ROUTE);
+            exit;
+        }
+        
+        if($requestMethod === "GET") {
+            $postController->deletePost();
+        }
+        else {
+            http_response_code(405);
+            echo("Method not allowed.");
+        }
+        break;
+    }
     case EDIT_PROFILE_ROUTE: {
-        if($_SERVER["REQUEST_METHOD"] === "POST") {
+        if($requestMethod === "POST") {
             $userController->editProfile();
         }
-        else if($_SERVER["REQUEST_METHOD"] === "GET") {
+        else if($requestMethod === "GET") {
             require_once __DIR__ . '/../src/Views/EditProfile.php';
         }
         else {
@@ -202,7 +237,7 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
     }
     default: {
         http_response_code(404);
-        echo "No route found.";
+        echo "No route found: " . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
     }
 }
 ?>

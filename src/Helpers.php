@@ -33,6 +33,9 @@ const ADMIN_PANEL_ROUTE = "/admin";
 const MODERATOR_PANEL_ROUTE = "/moderator";
 const PROFILE_USER_ROUTE = "/profile";
 const EDIT_PROFILE_ROUTE = "/edit-profile";
+const ADD_NEW_POST_ROUTE = PROFILE_USER_ROUTE . "/add-new-post";
+const EDIT_POST_ROUTE = PROFILE_USER_ROUTE . "/edit-post";
+const DELETE_POST_ROUTE = PROFILE_USER_ROUTE . "/delete-post";
 
 enum E_SEND_MAIL_RETURN_CODES {
     case Success;

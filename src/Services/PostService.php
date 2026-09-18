@@ -17,29 +17,41 @@ readonly class PostService {
     public function __construct(private IPostRepository $postRepo) {
     }
 
-    public function addNewPost() {
-        $header = $_POST["header"];
-
+    public function addNewPost(int $userId, string $header, string $text): int {
         if(empty($header) || strlen($header) < 3 || strlen($header) > 64) {
             throw new Exception("Header length does not correct");    
         }
-
-        $text = $_POST["maintext"];
-
         if(empty($text) || strlen($text) < 10 || strlen($text) > 300) {
             throw new Exception("Main text length does not correct");    
         }
 
-        $userId = $_SESSION["id"];
-
-        $this->postRepo->addNewPost($userId, $header, $text);
+        return $this->postRepo->createPost($userId, $header, $text);
     }
 
-    public function getUserPostsByUserId(int $userId): ?array {
-        if(empty($_SESSION[$userId])) {
-            throw new Exception("User session not found");
+    public function getUserPostsByUserId(int $userId): array {
+        return $this->postRepo->findUserPostsByUserId($userId);
+    }
+
+    public function updatePost(int $postId, string $header, string $text): void {
+        if(empty($header) || strlen($header) < 3 || strlen($header) > 64) {
+            throw new Exception("Header length does not correct");    
+        }
+        if(empty($text) || strlen($text) < 10 || strlen($text) > 300) {
+            throw new Exception("Main text length does not correct");    
         }
 
-        return $this->postRepo->findUserPostsByUserId($userId);
+        $rowCount = $this->postRepo->updatePostData($postId, $header, $text);
+
+        if($rowCount == 0) {
+            throw new Exception("Error while updating post " . $postId);    
+        }
+    }
+
+    public function deletePost(int $postId): void {
+        $rowCount = $this->postRepo->deletePostById($postId);
+
+        if($rowCount == 0) {
+            throw new Exception("Error while deleting post " . $postId);    
+        }
     }
 }

@@ -1,17 +1,22 @@
 <?php
+
+require_once __DIR__ . '/../../DBConnection.php';
+
+$migrationObj = new Migration($pdo);
+$migrationObj->migrate();
+
 class Migration {
     public function __construct(private PDO $pdo)
-    {
-        
+    { 
     }
 
-    public function getMigrations():array {
+    public function getMigrations(): array {
         $sql = "SELECT * FROM `migrations`";
         $sth = $this->pdo->query($sql);
         return $sth->fetchAll(PDO::FETCH_COLUMN);
     }
 
-    public function saveMigration(string $file) {
+    public function saveMigration(string $file): int {
         $sql = "INSERT INTO `migrations` VALUES(:file)";
         $sth = $this->pdo->prepare($sql);
         $sth->execute(["file" => $file]);

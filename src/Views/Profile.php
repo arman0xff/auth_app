@@ -32,7 +32,9 @@
             <a href="<?= EDIT_PROFILE_ROUTE ?>" class="router-button">Edit</a>
 
             <h2 class="post-header">Add new post</h2>
-            <form method="post" action="/profile/add-new-post" class="post-form">
+            <form method="post" action="<?php echo ADD_NEW_POST_ROUTE ?>" class="post-form">
+                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+
                 <label for="header">Write a header</label>
                 <input type="text" id="header" name="header" placeholder="Type header" required>
                 <label for="maintext">Write a main text</label>
@@ -45,11 +47,31 @@
             <?php if (!empty($userPosts)) {?>
                 <?php foreach($userPosts as $post) {?>
                     <article>
-                        <h2><?php echo $post['title']; ?></h2>
-                        <p><?php echo $post['text']; ?></p>
-                        <p><?php echo $post['created_at']; ?></p>
-                        <a href="edit-post.php?post_id=1" class="router-button">Edit</a>
-                        <a href="delete-post.php?post_id=1" class="router-button">Delete</a>
+                        <?php if (!empty($editingPostId) && $editingPostId == $post['id']) { ?>
+                            <div class="post-edit">
+                                <form method="post" action="<?php echo EDIT_POST_ROUTE ?>">
+                                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                                    <input type="hidden" name="post_id" value="<?php echo $post['id']; ?>">
+                                    
+                                    <label for="edit-header-<?php echo $post['id']; ?>">Title</label>
+                                    <input type="text" name="header" id="edit-header-<?php echo $post['id']; ?>" value="<?php echo htmlspecialchars($post['title']) ?>" required>
+
+                                    <label for="edit-header-<?php echo $post['id']; ?>">Text</label>
+                                    <input type="text" name="text" id="edit-text-<?php echo $post['id']; ?>" value="<?php echo htmlspecialchars($post['text']) ?>" required>
+                                    
+                                    <button type="submit">Save</button>
+                                    <a href="<?php PROFILE_USER_ROUTE ?>" class="router-button">Cancel</a>
+                                </form>
+                            </div>
+                        <?php } else { ?>
+                            <h2 class="post-header"><?php echo $post['title']; ?></h2>
+                            <p class="post-text"><?php echo nl2br($post['text'], false); ?></p>
+                            <p><?php echo $post['created_at']; ?></p>
+                            <?php if(empty($_GET["id"])) { ?>
+                                <a href="<?php echo EDIT_POST_ROUTE ?>?post_id=<?php echo($post['id']); ?>" class="router-button">Edit</a>
+                                <a href="<?php echo DELETE_POST_ROUTE ?>?post_id=<?php echo($post['id']); ?>" class="router-button">Delete</a>
+                            <?php } ?>
+                        <?php } ?>
                     </article>
                 <?php } ?>
             <?php } ?>

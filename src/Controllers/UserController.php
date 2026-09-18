@@ -12,7 +12,7 @@ use Exception;
 use E_SEND_MAIL_RETURN_CODES;
 
 readonly class UserController {
-    public function __construct(private UserService $userService, private AuthService $authService) {
+    public function __construct(private UserService $userService, private AuthService $authService, private PostService $postService) {
         
     }
 
@@ -303,7 +303,7 @@ readonly class UserController {
             }
             else {
                 $userDto->profileImageUrl = $this->userService->getProfileImageUrl($profileId);
-                // $userPosts = $this->postService->getUserPostsByUserId($profileId);
+                $userPosts = $this->postService->getUserPostsByUserId($profileId);
             }
         }
 
