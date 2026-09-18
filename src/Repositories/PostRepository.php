@@ -44,4 +44,12 @@ readonly class PostRepository implements IPostRepository {
 
         return $sth->rowCount();
     }
+
+    public function getAllPosts(): array {
+        $sql = "SELECT p.`user_id`, p.`title`, p.`text`, p.`created_at`, u.`first_name`, u.`last_name`, u.`image_id`
+            FROM `posts` p JOIN `users` u ON p.`user_id` = u.`id` ORDER BY `created_at` DESC";
+        $sth = $this->pdo->query($sql);
+
+        return $sth->fetchAll();
+    }
 }

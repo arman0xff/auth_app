@@ -67,7 +67,17 @@ readonly class PostController {
             $this->postService->deletePost($_GET['post_id']);
             $userPosts = $this->postService->getUserPostsByUserId($userId);
         }
-        
+
         require_once __DIR__ . '/../Views/Profile.php';
+    }
+
+    public function showAllPosts(): void {
+        try {
+            $posts = $this->postService->getAllPosts();
+            require_once __DIR__ . '/../Views/Posts.php';
+        }
+        catch(Exception $e) {
+            echo("throw excep" . $e->getMessage());
+        }
     }
 }

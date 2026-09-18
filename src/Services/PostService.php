@@ -54,4 +54,14 @@ readonly class PostService {
             throw new Exception("Error while deleting post " . $postId);    
         }
     }
+
+    public function getAllPosts(): array {
+        $res = $this->postRepo->getAllPosts();
+
+        if(sizeof($res) == 0) {
+            throw new Exception("No post found");
+        }
+
+        return $res;
+    }
 }

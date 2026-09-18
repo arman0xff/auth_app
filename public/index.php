@@ -235,6 +235,17 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
         }
         break;
     }
+    case POSTS_ROUTE: {
+        if($requestMethod === "GET") {
+            $postController->showAllPosts();
+        }
+        else {
+            http_response_code(405);
+            echo "Method not allowed.";
+        }
+        break;
+    }
+
     default: {
         http_response_code(404);
         echo "No route found: " . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
