@@ -17,7 +17,7 @@
 
             <?php if(!empty($error)) {?>
                   <p class="auth-switch">
-                        <?php echo $error; ?> <a href="<?php echo LOGIN_USER_ROUTE . "?redirect=login"?>" class="router-link">Go to login page</a>
+                        <?php echo $error; ?> <a href="<?php echo LOGIN_USER_ROUTE . "?redirect=" . LOGIN_USER_ROUTE?>" class="router-link">Go to login page</a>
                   </p>
             <?php } else { ?>
                   <table>

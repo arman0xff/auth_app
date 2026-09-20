@@ -232,12 +232,29 @@ readonly class UserRepository implements IUserRepository {
         return $sth->fetch();
     }
 
-    public function updateUserProfile(int $userId, array $data):bool {
-        $sql = "UPDATE `users` SET `first_name` = :firstName, `last_name` = :lastName, `phone` = :phone, `location` = :location, `date_of_birth` = :date_of_birth, `bio` = :bio WHERE `id` = :user_id";
+    public function updateUserProfile(int $userId, array $data): bool {
+        $sql = "UPDATE `users` SET `first_name` = :firstName, `last_name` = :lastName, `phone` = :phone, `location` = :location, `date_of_birth` = :date_of_birth, `bio` = :bio, `image_id` = :imageId WHERE `id` = :userId";
+        $sth = $this->pdo->prepare($sql);
+        return $sth->execute([
+            "firstName" => $data["first_name"], "lastName" => $data["last_name"], "phone" => $data["phone"], "location" => $data["location"], 
+            "date_of_birth" => $data["date_of_birth"], "bio" => $data["bio"], "userId" => $userId, "imageId" => $data["image_id"]]
+        );
+    }
+
+    public function findUserImageId(int $userId): ?int {
+        $sql = "SELECT `image_id` FROM `users` WHERE `id` = :userId";
+        $sth = $this->pdo->prepare($sql);
+        $sth->execute(["userId" => $userId]);
+
+        $result = $sth->fetchColumn();
+        return $result == false ? null : (int)$result;
+    }
+
+    public function setImageId(int $userId, ?int $imageId): bool {
+        $sql = "UPDATE `users` SET `image_id` = :imageId WHERE `id` = :userId";
         $sth = $this->pdo->prepare($sql);
         $sth->execute([
-            "firstName" => $data["first_name"], "lastName" => $data["last_name"], "phone" => $data["phone"], "location" => $data["location"], 
-            "date_of_birth" => $data["date_of_birth"], "bio" => $data["bio"]]
+            "imageId" => $imageId, "userId" => $userId]
         );
 
         return $sth->rowCount() > 0;

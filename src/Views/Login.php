@@ -24,13 +24,13 @@
             <span class="error"><?php echo $error; ?></span>
         <?php } ?>
 
-        <?php if(isset($success)) { ?>
-            <span class="success"><?php echo $success; ?></span>
+        <?php if(isset($_SESSION['message'])) { ?>
+            <span class="success"><?php echo $_SESSION['message']; ?></span>
         <?php }?>
 
         <button type="submit">Login</button>
 
-        <?php if(!isset($success) || !strlen($success)) { ?>
+        <?php if(!isset($_SESSION['message']) || !strlen($_SESSION['message'])) { ?>
             <p class="auth-switch">
                 Don't have an account? <a class="router-link" href="<?php echo REGISTER_USER_ROUTE?>">Register</a>
             </p>

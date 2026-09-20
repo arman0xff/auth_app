@@ -17,15 +17,15 @@
             </p>
         <?php } else { ?>
         <div>
-            <?php if (!empty($posts)) {?>
+            <?php if(!empty($posts)) {?>
                 <?php foreach($posts as $post) {?>
                     <article>
-                        <p class="post-text"><?php echo $post['first_name'] . " " . $post['last_name']; ?></h2>
-                        <h2 class="post-header"><?php echo $post['title']; ?></h2>
-                        <p class="post-text"><?php echo nl2br($post['text'], false); ?></p>
+                        <p class="post-text"><?php echo htmlspecialchars($post['first_name'] . " " . $post['last_name']); ?></p>
+                        <h2 class="post-header"><?php echo htmlspecialchars($post['title']); ?></h2>
+                        <p class="post-text"><?php echo nl2br(htmlspecialchars($post['text']), false); ?></p>
                         <p><?php echo $post['created_at']; ?></p>
-                    <?php } ?>
                     </article>
+                    <?php } ?>
                 <?php } ?>
             <?php } ?>
         </div>

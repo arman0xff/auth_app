@@ -8,4 +8,5 @@ interface IPostRepository {
     public function updatePostData(int $postId, string $header, string $text);
     public function deletePostById(int $postId);
     public function getAllPosts();
+    public function findPostById(int $postId);
 }

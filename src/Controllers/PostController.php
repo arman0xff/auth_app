@@ -27,7 +27,9 @@ readonly class PostController {
     }
 
     public function updatePost(): void {
-        $this->postService->updatePost($_POST['post_id'], $_POST['header'], $_POST['text']);
+        $userId = $_SESSION['id'];
+        $postId = (int)$_POST['post_id'];
+        $this->postService->updatePost($userId, $postId, $_POST['header'], $_POST['text']);
         
         http_response_code(200);
         header('Location: ' . PROFILE_USER_ROUTE);
@@ -44,7 +46,7 @@ readonly class PostController {
             $error = "Requested profile ID not found";
         }
         else {
-            $userDto->profileImageUrl = $this->userService->getProfileImageUrl($userId);
+            $profileImageUrl = $this->userService->getProfileImageUrl($userDto->profileImageId);
             $userPosts = $this->postService->getUserPostsByUserId($userId);
         }
 
@@ -55,20 +57,12 @@ readonly class PostController {
 
     public function deletePost(): void {
         $userId = $_SESSION["id"];
-        $postId = $_GET["post_id"] ?? null;
+        $postId = $_POST["post_id"] ?? null;
 
-        $userDto = $this->userService->getUserData($userId);
+        $this->postService->deletePost($userId, $postId);
 
-        if($userDto == null) {
-            $error = "Requested profile ID not found";
-        }
-        else {
-            $userDto->profileImageUrl = $this->userService->getProfileImageUrl($userId);
-            $this->postService->deletePost($_GET['post_id']);
-            $userPosts = $this->postService->getUserPostsByUserId($userId);
-        }
-
-        require_once __DIR__ . '/../Views/Profile.php';
+        header('Location: ' . PROFILE_USER_ROUTE);
+        exit;
     }
 
     public function showAllPosts(): void {

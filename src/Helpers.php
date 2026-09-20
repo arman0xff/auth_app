@@ -43,3 +43,19 @@ enum E_SEND_MAIL_RETURN_CODES {
     case RateLimit;
     case NotFound;
 }
+
+final class Result {
+    private function __construct(
+        public readonly string $message,
+        public readonly bool $isValid,
+        public readonly mixed $value
+    ) {}
+
+    public static function fail(string $message, $value = null) {
+        return new self($message, false, $value);
+    }
+
+    public static function success(string $message, $value = null) {
+        return new self($message, true, $value);
+    }
+}

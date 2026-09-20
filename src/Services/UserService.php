@@ -11,32 +11,31 @@ use Mailer\Mailer;
 use Models\User;
 use E_SEND_MAIL_RETURN_CODES;
 use Interfaces\IUserRepository;
-use Helpers;
+use Result;
 
 readonly class UserService {
     public function __construct(private IUserRepository $userRepo, private AuthService $authService) {
     }
 
-    public function register(RegisterUserDto $userDto, array &$errors): int {
-        if (strlen($userDto->firstName) < ACCOUNT_REG_MIN_FIRST_NAME_LEN || strlen($userDto->firstName) > ACCOUNT_REG_MAX_FIRST_NAME_LEN) {
-            $errors['name'] = "Wrong first name length\n";
-            return 0;
+    public function register(RegisterUserDto $userDto): Result {
+        if(strlen($userDto->firstName) < ACCOUNT_REG_MIN_FIRST_NAME_LEN || strlen($userDto->firstName) > ACCOUNT_REG_MAX_FIRST_NAME_LEN) {
+            $errors['first_name'] = "Wrong first name length\n";
         } 
-        if (strlen($userDto->firstName) < ACCOUNT_REG_MIN_LAST_NAME_LEN || strlen($userDto->firstName) > ACCOUNT_REG_MAX_LAST_NAME_LEN) {
-            $errors['name'] = "Wrong last name length\n";
-            return 0;
+        if(strlen($userDto->lastName) < ACCOUNT_REG_MIN_LAST_NAME_LEN || strlen($userDto->lastName) > ACCOUNT_REG_MAX_LAST_NAME_LEN) {
+            $errors['last_name'] = "Wrong last name length\n";
         } 
-        if (!filter_var($userDto->email, FILTER_VALIDATE_EMAIL)) { // 255
+        if(!filter_var($userDto->email, FILTER_VALIDATE_EMAIL)) { // 255
             $errors['email'] = "Wrong email format\n";
-            return 0;
         }
         if($this->checkEmailExist($userDto->email)) {
             $errors['email'] = "Email already exists\n";
-            return 0;
         } 
-        if (!$this->validatePassword($userDto->password)) {
+        if(!$this->validatePassword($userDto->password)) {
             $errors['password'] = "Wrong password length\n";
-            return 0;
+        }
+
+        if(!empty($errors)) {
+            return Result::fail("Validation error", $errors);
         }
 
         $userToken = generateRandomToken();
@@ -45,24 +44,24 @@ readonly class UserService {
         $userId = $this->userRepo->create($userDto->firstName, $userDto->lastName, $userDto->email, $pass_hash);
         
         if($userId == 0) {
-            throw new Exception("Failed to create user");
+            return Result::fail("Failed to create user");
         }
 
         try {
             $this->authService->createUserDefaultRole($userId);
         } catch (Exception $e) {
-            throw new Exception("Failed to create user default role");
+            return Result::fail("Failed to create user default role");
         }
 
         if(!$this->userRepo->createUserToken($userId, $userToken, 'email_verify')) {
-            throw new Exception("Failed to create user token");
+            return Result::fail("Failed to create user token");
         }
 
         require_once __DIR__ . '/../Mailer.php';
 
         Mailer::sendVerificationMail($userDto->email, $userDto->firstName, $userToken);
 
-        return $userId;
+        return Result::success("Account successfully registered. Please check your email to verify your account.", $userId);
     }
 
     public function checkEmailExist(string $email): bool {
@@ -95,11 +94,15 @@ readonly class UserService {
         return $result;
     }
 
-    public function login(LoginUserDto $userDto): User {
+    public function login(LoginUserDto $userDto): Result {
+        if(isset($_SESSION["id"])) {
+            return Result::fail("You are already logged");
+        }
+
         $resArray = $this->userRepo->findByEmailWithRole($userDto->email);
 
         if($resArray == null) {
-            throw new Exception("Invalid email or password");
+            return Result::fail("Invalid email or password");
         }
 
         $user = new User(
@@ -107,8 +110,12 @@ readonly class UserService {
             $resArray['email_verified_at']
         );
 
-        if (!$user || !password_verify($userDto->password, $user->password)) {
-            throw new Exception("Invalid email or password");
+        if(!$user || !password_verify($userDto->password, $user->password)) {
+            return Result::fail("Invalid email or password");
+        }
+
+        if($user->emailVerifiedAt == null) {
+            return Result::fail("You need to verify your email");
         }
 
         session_regenerate_id(true);
@@ -119,24 +126,24 @@ readonly class UserService {
         $_SESSION['email'] = $user->email;
         $_SESSION['email_verified_at'] = $user->emailVerifiedAt;
 
-        return $user;
+        return Result::success("Login successful", $user);
     }
 
     public function update(string $email): int {
         return $this->userRepo->getIdByEmail($email);
     }
 
-    public function tryOpenDashboard(&$error = ""): ?DashboardUserDto {
+    public function tryOpenDashboard(): Result {
         require_once __DIR__ . '/../DTOs/User/DashboardUserDto.php';
 
-        if (!isset($_SESSION["id"])) {
-            $error = "You must be logged in to access this page";
-            return null;
+        if(!isset($_SESSION["id"])) {
+            return Result::fail("You must be logged in to access this page", 0);
         }
         
         if(!isset($_SESSION["email_verified_at"]) || $_SESSION["email_verified_at"] == null) {
-            $error = "You must verify your email to access this page";
-            return null;
+            session_destroy();
+            $_SESSION = [];
+            return Result::fail("You must verify your email to access this page", 1);
         }
 
         $role = $this->authService->refreshUserRole($_SESSION['id']);
@@ -144,17 +151,14 @@ readonly class UserService {
         $userDto = new DashboardUserDto($_SESSION['id'], $_SESSION['email'], $_SESSION['first_name'], $_SESSION['last_name'], $role);
 
         if(!$this->authService->can($userDto->role, 'view_dashboard')) {
-            $error = "You don't have permission to view this page";
-            header('Location: ' . LOGIN_USER_ROUTE);
-            exit;
+            return Result::fail("You don't have permission to view this page", 2);
         }
 
         if($this->authService->requireLogin()) {
-            header('Location: ' . LOGIN_USER_ROUTE);
-            exit;
+            return Result::fail("", 2);
         }
 
-        return $userDto;
+        return Result::success("", $userDto);
     }
 
     public function getUserData(int $userId): ?ProfileUserDto {
@@ -171,54 +175,76 @@ readonly class UserService {
         }
 
         $userData = new ProfileUserDto($user['id'], $user['email'], $user['first_name'], $user['last_name'], $user['role'], 
-            $user['phone'] ?? "not provided", $user['location'] ?? "not provided", $user['date_of_birth'] ?? "not provided", $user['bio'] ?? "not provided");
+            $user['phone'] ?? "not provided", $user['location'] ?? "not provided", $user['date_of_birth'] ?? "not provided", 
+            $user['bio'] ?? "not provided", $user['image_id'] ?? null);
 
         return $userData;
     }
 
-    public function updateUserProfile(ProfileUserDto $dto, ?array $photo, $isImageDelete): bool {
+    public function updateUserProfile(ProfileUserDto $dto, ?array $photo, bool $isImageDelete): Result {
         if(!isset($_SESSION['id']) || $_SESSION['id'] !== $dto->id) {
-            throw new Exception("Unauthorized access to update profile");
+            $errors['unauthenticated'] = "Unauthorized access to update profile";
+        }
+        if(strlen($dto->firstName) < ACCOUNT_REG_MIN_FIRST_NAME_LEN || strlen($dto->firstName) > ACCOUNT_REG_MAX_FIRST_NAME_LEN) {
+            $errors['first_name'] = "Wrong first name length\n";
+        } 
+        if(strlen($dto->lastName) < ACCOUNT_REG_MIN_LAST_NAME_LEN || strlen($dto->lastName) > ACCOUNT_REG_MAX_LAST_NAME_LEN) {
+            $errors['last_name'] = "Wrong last name length\n";
         }
 
-        if (strlen($dto->firstName) < ACCOUNT_REG_MIN_FIRST_NAME_LEN || strlen($dto->firstName) > ACCOUNT_REG_MAX_FIRST_NAME_LEN) {
-            $errors['name'] = "Wrong first name length\n";
-            return 0;
-        } 
-        if (strlen($dto->firstName) < ACCOUNT_REG_MIN_LAST_NAME_LEN || strlen($dto->firstName) > ACCOUNT_REG_MAX_LAST_NAME_LEN) {
-            $errors['name'] = "Wrong last name length\n";
-            return 0;
+        if(!empty($errors)) {
+            return Result::fail("Validation error", $errors);
         }
-        if($this->checkEmailExist($dto->email)) {
-            $errors['email'] = "Email already exists\n";
-            return 0;
-        }
+
+        $currentImageId = $this->userRepo->findUserImageId($dto->id);
 
         $uploadDir = __DIR__ . '/../../public/storage/uploads/';
 
         if($isImageDelete) {
-            $this->deleteOldProfileImage($dto->id, $uploadDir);
+            if(isset($currentImageId)) {
+                $this->deleteOldProfileImage($currentImageId, $uploadDir);
+                $currentImageId = null;
+            }
         }
-
-        if(isset($photo) && $photo['error'] === UPLOAD_ERR_OK) {
-            $this->deleteOldProfileImage($dto->id, $uploadDir);
-            
+        else if(isset($photo) && $photo['error'] === UPLOAD_ERR_OK) {
             $nextFileId = $this->getLastUploadId() + 1;
+
+            $parts = explode(".", $photo['name']);
+            $type = end($parts);
+            
+            if($type != "jpg" && $type != "png") {
+                $errors['image'] = "You need to upload jpg or png photos";
+                return Result::fail("Validation error", $errors);
+            }
+
             $targetFilePath = $uploadDir . "profile_image_" . $nextFileId . "_" . basename($photo['name']);
 
             if(!move_uploaded_file($photo['tmp_name'], $targetFilePath)) {
-                throw new Exception("Failed to upload profile picture");
+                $errors['image'] = "Failed to upload profile picture";
+                return Result::fail("Validation error", $errors);
+            }
+            else {
+                if(isset($currentImageId)) {
+                    $this->deleteOldProfileImage($currentImageId, $uploadDir);
+                }
+
+                $currentImageId = $nextFileId;
             }
         }
 
-        return $this->userRepo->updateUserProfile($dto->id, [
+        if(!$this->userRepo->updateUserProfile($dto->id, [
             'first_name' => $dto->firstName,
             'last_name' => $dto->lastName,
             'phone' => $dto->phone,
             'location' => $dto->location,
             'date_of_birth' => $dto->dateOfBirth,
-            'bio' => $dto->bio
-        ]);
+            'bio' => $dto->bio,
+            'image_id' => $currentImageId
+        ])) {
+            return Result::fail("Server error", $errors['server'] = "Failed to update profile");
+        }
+
+        return Result::success("Profile updated successfully");
     }
 
     public function getLastUploadId(): int {
@@ -239,18 +265,23 @@ readonly class UserService {
         return $lastId;
     }
 
-    public function deleteOldProfileImage($userId, $uploadDir): void {
+    public function deleteOldProfileImage(int $imageId, string $uploadDir): void {
         if(!is_dir($uploadDir)) {
             return;
         }
 
         $files = array_diff(scandir($uploadDir), ['.', '..']);
+        
         foreach ($files as $file) {
             $formatted = explode('_', $file);
-            if (sizeof($formatted) >= 3 && $userId === (int)$formatted[2]) {
+            if(sizeof($formatted) >= 3 && $imageId === (int)$formatted[2]) {
                 @unlink($uploadDir . $file);
             }
         }
+    }
+
+    public function setImageId(int $userId, ?int $nextFileId): bool {
+        return $this->userRepo->setImageId($userId, $nextFileId);
     }
 
     public function getProfileImageUrl(int $imageId): ?string {
@@ -259,7 +290,7 @@ readonly class UserService {
         foreach ($files as $file) {
             $formatted = explode("_", $file);
 
-            if (file_exists($uploadDir . $file) && sizeof($formatted) >= 3 && $imageId === (int)$formatted[2]) {
+            if(file_exists($uploadDir . $file) && sizeof($formatted) >= 3 && $imageId === (int)$formatted[2]) {
                 return '/storage/uploads/' . $file;
             }
         }

@@ -24,16 +24,15 @@ readonly class UserController {
         
         $newUserDto = new RegisterUserDto($_POST['first_name'] ?? '', $_POST['last_name'] ?? '', $_POST['email'] ?? '', $_POST['password'] ?? '');
 
-        try {
-            if($this->userService->register($newUserDto, $errors)) {
-                $_SESSION['message'] = "Account successfully registered. Please check your email to verify your account.";
-                header('Location: ' . LOGIN_USER_ROUTE);
-                exit;
-            }
-        } catch (Exception) {
-            $errors['button'] = "Account doesn't registered";
+        $result = $this->userService->register($newUserDto);
+
+        if ($result->isValid) {
+            $_SESSION['message'] = $result->message;
+            header('Location: ' . LOGIN_USER_ROUTE);
+            exit;
         }
 
+        $errors = is_array($result->value) ? $result->value : ['button' => $result->message];
         $this->showRegisterForm($errors);
     }
 
@@ -45,40 +44,50 @@ readonly class UserController {
         require_once __DIR__ . '/../Models/User.php';
         require_once __DIR__ . "/../DTOs/User/LoginUserDto.php";
 
-        $error = "";
-        $success = $_SESSION['error'] ?? "";
-        if($success != null && strlen($_SESSION['error']) == 0) {
+        $success = $_SESSION['message'] ?? "";
+        if($success != null && strlen($_SESSION['message']) == 0) {
             $success = "";
         }
 
-        unset($_SESSION['error']);
+        unset($_SESSION['message']);
 
         $userDto = new LoginUserDto($_POST['email'] ?? "", $_POST['password'] ?? "");
 
-        try {
-            $this->userService->login($userDto);
+        $result = $this->userService->login($userDto);
 
-            header('Location: ' . PROFILE_USER_ROUTE);
-            exit;
-        } catch (Exception $e) {
-            $error = $e->getMessage();
+        if(!$result->isValid) {
+            $this->showLoginForm($result->message);
+            return;
         }
 
-        $this->showLoginForm();
+        header('Location: ' . PROFILE_USER_ROUTE);
+        exit;
     }
 
-    public function showLoginForm(): void {
+    public function showLoginForm(string $error = "", string $success = ""): void {
         require_once __DIR__ . '/../Views/Login.php';
     }
 
     public function dashboard(): void {        
-        $error = "";
+        $result = $this->userService->tryOpenDashboard();
 
-        try {
-            $userDto = $this->userService->tryOpenDashboard($error);
-        } catch (Exception $e) {
-            $error = $e->getMessage();
+        if(!$result->isValid) {
+            switch((int)$result->value) {
+                case 2: {
+                    header('Location: ' . LOGIN_USER_ROUTE);
+                    exit;
+                }
+                default: {
+                    $error = $result->message;
+                    $userDto = null;
+                }
+            }
         }
+        else {
+            $error = "";
+            $userDto = $result->value;
+        }
+
 
         require_once __DIR__ . '/../Views/Dashboard.php';
     }
@@ -121,7 +130,7 @@ readonly class UserController {
         if($email == null) {
             $error = "Email is required";
         }
-        else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        else if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $error = "Wrong email format";
         }
         else {
@@ -150,7 +159,7 @@ readonly class UserController {
         if($email == null) {
             $error = "Email is required";
         }
-        else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        else if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $error = "Wrong email format";
         }
         else {
@@ -174,6 +183,10 @@ readonly class UserController {
             }
         }
 
+        $this->showResetPasswordForm($error, $success);
+    }
+
+    public function showResetPasswordForm(string $error = "", string $success = "") {
         require_once __DIR__ . '/../Views/ForgetPassword.php';
     }
 
@@ -302,7 +315,9 @@ readonly class UserController {
                 $error = "Requested profile ID not found";
             }
             else {
-                $userDto->profileImageUrl = $this->userService->getProfileImageUrl($profileId);
+                if(isset($userDto->profileImageId)) {
+                    $profileImageUrl = $this->userService->getProfileImageUrl($userDto->profileImageId);
+                }
                 $userPosts = $this->postService->getUserPostsByUserId($profileId);
             }
         }
@@ -331,18 +346,25 @@ readonly class UserController {
                 $userDto = new ProfileUserDto(
                     $userId,
                     $_SESSION['email'] ?? '',
-                    trim($_POST['first_name'] ?? ''),
-                    trim($_POST['last_name'] ?? ''),
+                    $_POST['first_name'] ?? '',
+                    $_POST['last_name'] ?? '',
                     $_SESSION['role'] ?? 'user',
-                    trim($_POST['phone'] ?? '') ?: null,
-                    trim($_POST['location'] ?? '') ?: null,
-                    trim($_POST['dob'] ?? '') ?: null,
-                    trim($_POST['bio'] ?? '') ?: null
-                );      
+                    $_POST['phone'] ?? '',
+                    $_POST['location'] ?? '',
+                    $_POST['dob'] ?? '',
+                    $_POST['bio'] ?? ''
+                );
+                
+                $result = $this->userService->updateUserProfile($userDto, $imageObj, $shouldImageDelete);
 
-                $this->userService->updateUserProfile($userDto, $imageObj, $shouldImageDelete);
-                if(empty($errors)) {
-                    $success = "Profile updated successfully";
+                if ($result->isValid) {
+                    $success = $result->message;
+                } else {
+                    if (is_array($result->value)) {
+                        $errors = $result->value;
+                    } else {
+                        $errors['default'] = $result->message;
+                    }
                 }
             } catch(Exception $e) {
                 $errors['exception'] = $e->getMessage();
@@ -350,6 +372,19 @@ readonly class UserController {
 
             $userDto = $this->userService->getUserData($userId);
         }
+
+        require_once __DIR__ . '/../Views/EditProfile.php';
+    }
+
+    public function showEditProfileForm(): void {
+        $userId = $_SESSION['id'];
+
+        if (!isset($userId)) {
+            header('Location: ' . LOGIN_USER_ROUTE);
+            exit;
+        }
+
+        $userDto = $this->userService->getUserData($userId);
 
         require_once __DIR__ . '/../Views/EditProfile.php';
     }

@@ -17,7 +17,7 @@
             </p>
       <?php } else { ?>
         <div class="profile-image">
-            <img src="<?php echo($userDto->profileImageUrl ?? "storage/images/default-image.png")?>" alt="profile photo">
+            <img src="<?php echo($profileImageUrl ?? "storage/images/default-image.png")?>" alt="profile photo">
         </div>
         <table>
             <tr><td>First Name: </td><td><?php echo htmlspecialchars($userDto->firstName); ?></td></tr>
@@ -28,7 +28,7 @@
             <tr><td>Bio: </td><td><?php echo htmlspecialchars($userDto->bio); ?></td></tr>
         </table>
 
-        <?php if (empty($_GET['id'])) {?>
+        <?php if(empty($_GET['id'])) {?>
             <a href="<?= EDIT_PROFILE_ROUTE ?>" class="router-button">Edit</a>
 
             <h2 class="post-header">Add new post</h2>
@@ -44,10 +44,10 @@
         <?php } ?>
 
         <div>
-            <?php if (!empty($userPosts)) {?>
+            <?php if(!empty($userPosts)) {?>
                 <?php foreach($userPosts as $post) {?>
                     <article>
-                        <?php if (!empty($editingPostId) && $editingPostId == $post['id']) { ?>
+                        <?php if(!empty($editingPostId) && $editingPostId == $post['id']) { ?>
                             <div class="post-edit">
                                 <form method="post" action="<?php echo EDIT_POST_ROUTE ?>">
                                     <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
@@ -64,12 +64,17 @@
                                 </form>
                             </div>
                         <?php } else { ?>
-                            <h2 class="post-header"><?php echo $post['title']; ?></h2>
-                            <p class="post-text"><?php echo nl2br($post['text'], false); ?></p>
+                            <h2 class="post-header"><?php echo htmlspecialchars($post['title']); ?></h2>
+                            <p class="post-text"><?php echo nl2br(htmlspecialchars($post['text']), false); ?></p>
                             <p><?php echo $post['created_at']; ?></p>
                             <?php if(empty($_GET["id"])) { ?>
                                 <a href="<?php echo EDIT_POST_ROUTE ?>?post_id=<?php echo($post['id']); ?>" class="router-button">Edit</a>
-                                <a href="<?php echo DELETE_POST_ROUTE ?>?post_id=<?php echo($post['id']); ?>" class="router-button">Delete</a>
+
+                                <form method="post" action="<?php echo DELETE_POST_ROUTE; ?>" style="display: inline;">
+                                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                                    <input type="hidden" name="post_id" value="<?php echo $post['id']; ?>">
+                                    <button type="submit" class="router-button" onclick="return confirm('Are you sure?')">Delete</button>
+                                </form>
                             <?php } ?>
                         <?php } ?>
                     </article>

@@ -57,15 +57,15 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
 
     }
     case REGISTER_USER_ROUTE: {
-        if (isset($_SESSION["id"])) {
+        if(isset($_SESSION["id"])) {
             header('Location: ' . DASHBOARD_USER_ROUTE);
             exit;
         }
 
-        if ($requestMethod === "POST") {
+        if($requestMethod === "POST") {
             $userController->register();
         }
-        else if ($requestMethod === "GET") {
+        else if($requestMethod === "GET") {
             $userController->showRegisterForm();
         }
         else {
@@ -75,15 +75,15 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
         break;
     }
     case LOGIN_USER_ROUTE: {
-        if (isset($_SESSION["id"]) && empty($_GET["redirect"])) {
-            header('Location: ' . DASHBOARD_USER_ROUTE);
-            exit;
-        }
-        
-        if ($requestMethod === "POST") {
+        if($requestMethod === "POST") {
             $userController->login();
         }
-        else if ($requestMethod === "GET") {
+        else if($requestMethod === "GET") {
+            if(isset($_SESSION["id"]) && empty($_GET["redirect"])) {
+                header('Location: ' . DASHBOARD_USER_ROUTE);
+                exit;
+            }
+
             $userController->showLoginForm();
         }
         else {
@@ -93,6 +93,11 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
         break;
     }
     case DASHBOARD_USER_ROUTE: {
+        if(!isset($_SESSION["id"])) {
+            header('Location: ' . LOGIN_USER_ROUTE);
+            exit;
+        }
+
         $userController->dashboard();
         break;
     }
@@ -117,6 +122,9 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
     case FORGET_PASSWORD_ROUTE: {
         if($requestMethod === "POST") {
             $userController->forgetPassword();
+        }
+        else if($requestMethod === "GET") {
+            $userController->showResetPasswordForm();
         }
         else {
             http_response_code(405);
@@ -213,7 +221,7 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
             exit;
         }
         
-        if($requestMethod === "GET") {
+        if($requestMethod === "POST") {
             $postController->deletePost();
         }
         else {
@@ -227,7 +235,7 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
             $userController->editProfile();
         }
         else if($requestMethod === "GET") {
-            require_once __DIR__ . '/../src/Views/EditProfile.php';
+            $userController->showEditProfileForm();
         }
         else {
             http_response_code(405);

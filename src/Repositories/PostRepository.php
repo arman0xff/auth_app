@@ -37,6 +37,15 @@ readonly class PostRepository implements IPostRepository {
         return $sth->rowCount();
     }
 
+    public function findPostById(int $postId): ?array {
+        $sql = "SELECT * FROM `posts` WHERE `id` = :postId";
+        $sth = $this->pdo->prepare($sql);
+        $sth->execute(["postId" => $postId]);
+        $post = $sth->fetch();
+
+        return $post ?: null;
+    }
+
     public function deletePostById(int $postId): int {
         $sql = "DELETE FROM `posts` WHERE `id` = :postId";
         $sth = $this->pdo->prepare($sql);
