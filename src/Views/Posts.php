@@ -11,6 +11,11 @@
 </head>
 <body>
     <main class="panel">
+        <div style="margin-bottom: 20px; display: flex; gap: 10px; justify-content: center;">
+            <a href="<?php echo DASHBOARD_USER_ROUTE; ?>" class="router-button-main">Dashboard</a>
+            <a href="<?php echo PROFILE_USER_ROUTE; ?>" class="router-button-main">My Profile</a>
+        </div>
+
         <?php if(!empty($error)) {?>
             <p class="auth-switch">
                   <?php echo $error; ?> <a href="<?php echo PROFILE_USER_ROUTE?>" class="router-link">Return to your profile</a>
@@ -20,10 +25,10 @@
             <?php if(!empty($posts)) {?>
                 <?php foreach($posts as $post) {?>
                     <article>
-                        <p class="post-text"><?php echo htmlspecialchars($post['first_name'] . " " . $post['last_name']); ?></p>
+                        <p class="post-author"><?php echo htmlspecialchars($post['first_name'] . " " . $post['last_name']); ?></p>
                         <h2 class="post-header"><?php echo htmlspecialchars($post['title']); ?></h2>
                         <p class="post-text"><?php echo nl2br(htmlspecialchars($post['text']), false); ?></p>
-                        <p><?php echo $post['created_at']; ?></p>
+                        <p class="post-date"><?php echo $post['created_at']; ?></p>
                     </article>
                     <?php } ?>
                 <?php } ?>

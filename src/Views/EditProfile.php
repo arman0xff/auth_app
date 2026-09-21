@@ -25,6 +25,7 @@
             <label for="delete_image">Delete Profile Image</label>
             <input type="checkbox" name="delete_image" id="delete_image" value="1">
             <button type="submit">Update Profile</button>
+            <a href="<?php echo PROFILE_USER_ROUTE; ?>" class="router-button-main">Back to profile</a>
         </form>
 
         <?php if(!empty($success)) { ?>

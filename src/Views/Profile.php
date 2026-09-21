@@ -30,8 +30,10 @@
 
         <?php if(empty($_GET['id'])) {?>
             <a href="<?= EDIT_PROFILE_ROUTE ?>" class="router-button">Edit</a>
+            <a href="<?php echo DASHBOARD_USER_ROUTE; ?>" class="router-button">Dashboard</a>
+            <a href="<?php echo POSTS_ROUTE; ?>" class="router-button">All Posts</a>
 
-            <h2 class="post-header">Add new post</h2>
+            <h2 class="add-post-header">Add new post</h2>
             <form method="post" action="<?php echo ADD_NEW_POST_ROUTE ?>" class="post-form">
                 <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
 
