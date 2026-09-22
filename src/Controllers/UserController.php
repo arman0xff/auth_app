@@ -26,7 +26,7 @@ readonly class UserController {
 
         $result = $this->userService->register($newUserDto);
 
-        if ($result->isValid) {
+        if($result->isValid) {
             $_SESSION['message'] = $result->message;
             header('Location: ' . LOGIN_USER_ROUTE);
             exit;
@@ -302,6 +302,11 @@ readonly class UserController {
         require_once __DIR__ . '/../DTOs/User/ProfileUserDto.php';
 
         $error = "";
+        if(isset($_SESSION['error'])) {
+            $error = $_SESSION['error'];
+            $_SESSION['error'] = "";
+        }
+
         $profileId = $_GET["id"] ?? $_SESSION['id'] ?? null;
 
         if(empty($profileId)) {
@@ -357,10 +362,10 @@ readonly class UserController {
                 
                 $result = $this->userService->updateUserProfile($userDto, $imageObj, $shouldImageDelete);
 
-                if ($result->isValid) {
+                if($result->isValid) {
                     $success = $result->message;
                 } else {
-                    if (is_array($result->value)) {
+                    if(is_array($result->value)) {
                         $errors = $result->value;
                     } else {
                         $errors['default'] = $result->message;
@@ -379,7 +384,7 @@ readonly class UserController {
     public function showEditProfileForm(): void {
         $userId = $_SESSION['id'];
 
-        if (!isset($userId)) {
+        if(!isset($userId)) {
             header('Location: ' . LOGIN_USER_ROUTE);
             exit;
         }

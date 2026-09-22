@@ -17,7 +17,7 @@
             </p>
       <?php } else { ?>
         <div class="profile-image">
-            <img src="<?php echo($profileImageUrl ?? "storage/images/default-image.png")?>" alt="profile photo">
+            <img src="<?php echo($profileImageUrl ?? "/storage/images/default-image.png")?>" alt="profile photo">
         </div>
         <table>
             <tr><td>First Name: </td><td><?php echo htmlspecialchars($userDto->firstName); ?></td></tr>
@@ -33,12 +33,12 @@
             <a href="<?php echo DASHBOARD_USER_ROUTE; ?>" class="router-button">Dashboard</a>
             <a href="<?php echo POSTS_ROUTE; ?>" class="router-button">All Posts</a>
 
-            <h2 class="add-post-header">Add new post</h2>
+            <h2 class="add-post-title">Add new post</h2>
             <form method="post" action="<?php echo ADD_NEW_POST_ROUTE ?>" class="post-form">
                 <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
 
-                <label for="header">Write a header</label>
-                <input type="text" id="header" name="header" placeholder="Type header" required>
+                <label for="title">Write a title</label>
+                <input type="text" id="title" name="title" placeholder="Type title" required>
                 <label for="maintext">Write a main text</label>
                 <textarea name="maintext" id="maintext" placeholder="Type main text"></textarea>
                 <button type="submit">Add new post</button>
@@ -55,18 +55,27 @@
                                     <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                                     <input type="hidden" name="post_id" value="<?php echo $post['id']; ?>">
                                     
-                                    <label for="edit-header-<?php echo $post['id']; ?>">Title</label>
-                                    <input type="text" name="header" id="edit-header-<?php echo $post['id']; ?>" value="<?php echo htmlspecialchars($post['title']) ?>" required>
+                                    <label for="edit-title-<?php echo $post['id']; ?>">Title</label>
+                                    <input type="text" name="title" id="edit-title-<?php echo $post['id']; ?>" value="<?php echo htmlspecialchars($post['title']) ?>" required>
 
-                                    <label for="edit-header-<?php echo $post['id']; ?>">Text</label>
+                                    <label for="edit-title-<?php echo $post['id']; ?>">Text</label>
                                     <input type="text" name="text" id="edit-text-<?php echo $post['id']; ?>" value="<?php echo htmlspecialchars($post['text']) ?>" required>
-                                    
+
+                                    <p>Current status: <?php echo htmlspecialchars($post['status']) ?>
+
+                                    <label for="edit-status-<?php echo $post['id']; ?>">Change status:</label>
+                                    <select name="status" id="edit-status-<?php echo $post['id']; ?>">
+                                        <option value="draft">Draft</option>
+                                        <option value="publish">Publish</option>
+                                        <option value="archive">Archive</option>
+                                    </select>
+
                                     <button type="submit">Save</button>
-                                    <a href="<?php PROFILE_USER_ROUTE ?>" class="router-button">Cancel</a>
+                                    <a href="<?php echo PROFILE_USER_ROUTE ?>" class="router-button-main">Cancel</a>
                                 </form>
                             </div>
                         <?php } else { ?>
-                            <h2 class="post-header"><?php echo htmlspecialchars($post['title']); ?></h2>
+                            <h2 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h2>
                             <p class="post-text"><?php echo nl2br(htmlspecialchars($post['text']), false); ?></p>
                             <p><?php echo $post['created_at']; ?></p>
                             <?php if(empty($_GET["id"])) { ?>

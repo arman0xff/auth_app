@@ -1,0 +1,1 @@
+ALTER TABLE `posts` ADD COLUMN `status` ENUM('draft', 'published', 'archived') NOT NULL DEFAULT 'published' AFTER `created_at`;

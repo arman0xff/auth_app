@@ -37,18 +37,18 @@ h1 {
     text-align: center;
 }
 
-h2, .post-header {
+h2, .post-title {
     margin-top: 0;
     margin-bottom: 20px;
     text-align: center;
 }
 
-.post-header {
+.post-title {
     margin: 10px 0;
     overflow-wrap: break-word;
 }
 
-.add-post-header {
+.add-post-title {
     margin-top: 50px;
     margin: 10px 0;
     overflow-wrap: break-word;

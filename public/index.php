@@ -45,7 +45,7 @@ $postRepo = new PostRepository($pdo);
 
 $authService = new AuthService(new AuthRepository($pdo));
 $userService = new UserService($userRepo, $authService);
-$postService = new PostService($postRepo);
+$postService = new PostService($postRepo, $authService);
 
 $userController = new UserController($userService, $authService, $postService);
 $postController = new PostController($postService, $userService);

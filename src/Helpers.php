@@ -44,6 +44,12 @@ enum E_SEND_MAIL_RETURN_CODES {
     case NotFound;
 }
 
+enum E_POSTS_STATUSES: string {
+    case Draft = 'draft';
+    case Published = 'published';
+    case Archived = 'archived';
+}
+
 final class Result {
     private function __construct(
         public readonly string $message,

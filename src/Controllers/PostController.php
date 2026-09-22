@@ -5,7 +5,6 @@ namespace Controllers;
 use Services\UserService;
 use Services\PostService;
 use Exception;
-use E_SEND_MAIL_RETURN_CODES;
 
 readonly class PostController {
     public function __construct(private PostService $postService, private UserService $userService) {
@@ -13,7 +12,7 @@ readonly class PostController {
     }
 
     public function addNewPost(): void {
-        $lastInsertId = $this->postService->addNewPost($_SESSION["id"], $_POST["header"], $_POST["maintext"]);
+        $lastInsertId = $this->postService->addNewPost($_SESSION["id"], $_POST["title"], $_POST["maintext"]);
 
         if($lastInsertId == 0) {
             http_response_code(500);
@@ -29,8 +28,13 @@ readonly class PostController {
     public function updatePost(): void {
         $userId = $_SESSION['id'];
         $postId = (int)$_POST['post_id'];
-        $this->postService->updatePost($userId, $postId, $_POST['header'], $_POST['text']);
         
+        $result = $this->postService->updatePost($userId, $postId, $_POST['title'], $_POST['text'], $_POST['status']);
+
+        if(!$result->isValid) {
+            $_SESSION['error'] = $result->message;
+        }
+
         http_response_code(200);
         header('Location: ' . PROFILE_USER_ROUTE);
         exit;
@@ -46,7 +50,10 @@ readonly class PostController {
             $error = "Requested profile ID not found";
         }
         else {
-            $profileImageUrl = $this->userService->getProfileImageUrl($userDto->profileImageId);
+            if(isset($userDto->profileImageId)) {
+                $profileImageUrl = $this->userService->getProfileImageUrl($userDto->profileImageId);
+            }
+            
             $userPosts = $this->postService->getUserPostsByUserId($userId);
         }
 

@@ -2,6 +2,7 @@
 
 namespace Repositories;
 
+use E_POSTS_STATUSES;
 use PDO;
 use Interfaces\IPostRepository;
 use Exception;
@@ -21,6 +22,14 @@ readonly class PostRepository implements IPostRepository {
         return $sth->fetchAll();
     }
 
+    public function findUserPostsWithStatusByUserId(int $userId, \E_POSTS_STATUSES $status): array {
+        $sql = "SELECT * FROM `posts` WHERE `user_id` = :userId AND `status` = :status";
+        $sth = $this->pdo->prepare($sql);
+        $sth->execute(["userId" => $userId, "status" => $status->name]);
+
+        return $sth->fetchAll();
+    }
+
     public function createPost(int $userId, string $title, string $text): int {
         $sql = "INSERT INTO `posts` (user_id, title, text) VALUES (:userId, :title, :text)";
         $sth = $this->pdo->prepare($sql);
@@ -29,10 +38,10 @@ readonly class PostRepository implements IPostRepository {
         return $this->pdo->lastInsertId();
     }
 
-    public function updatePostData(int $postId, string $header, string $text): int {
-        $sql = "UPDATE `posts` SET `title` = :header, `text` = :text WHERE `id` = :postId";
+    public function updatePostData(int $postId, string $title, string $text, E_POSTS_STATUSES $status): int {
+        $sql = "UPDATE `posts` SET `title` = :title, `text` = :text, `status` = :status WHERE `id` = :postId";
         $sth = $this->pdo->prepare($sql);
-        $sth->execute(["header" => $header, "text" => $text, "postId" => $postId]);
+        $sth->execute(["title" => $title, "text" => $text, "postId" => $postId, "status" => $status->value]);
 
         return $sth->rowCount();
     }
@@ -56,7 +65,7 @@ readonly class PostRepository implements IPostRepository {
 
     public function getAllPosts(): array {
         $sql = "SELECT p.`user_id`, p.`title`, p.`text`, p.`created_at`, u.`first_name`, u.`last_name`, u.`image_id`
-            FROM `posts` p JOIN `users` u ON p.`user_id` = u.`id` ORDER BY `created_at` DESC";
+            FROM `posts` p JOIN `users` u ON p.`user_id` = u.`id` WHERE p.`status` = 'published' ORDER BY `created_at` DESC";
         $sth = $this->pdo->query($sql);
 
         return $sth->fetchAll();
