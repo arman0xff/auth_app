@@ -1,4 +1,4 @@
-<?php /** @var array $users */?>
+<?php /** @var array $users */ /** @var array $categories */?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -55,6 +55,52 @@
                                                       <button type="submit">Change role</button>
                                                 </form>
                                           </td>
+                                    </tr>
+                              <?php } ?>
+                        </tbody>
+                  </table>
+
+                  <hr style="border: 0; border-top: 1px solid #b40e90;">
+                  <h2>Manage categories</h2>
+
+                  <form method="post" action="<?php echo ADMIN_PANEL_ROUTE; ?>">
+                        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                        <input type="hidden" name="action" value="create_category">
+
+                        <label for="category_name">Category name</label>
+                        <input type="text" id="category_name" name="category_name" required>
+                        <button type="submit">Add category</button>
+                  </form>
+
+                  <table>
+                        <thead>
+                              <tr>
+                                    <td>Category name</td>
+                                    <td>Actions</td>
+                              </tr>
+                        </thead>
+                        <tbody>
+                              <?php foreach($categories as $cat) { ?>
+                                    <tr>
+                                          <td>  
+                                                <form method="post" action="<?php echo ADMIN_PANEL_ROUTE; ?>">
+                                                      <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                                                      <input type="hidden" name="action" value="edit_category">
+                                                      <input type="hidden" name="category_id" value="<?php echo $cat['id']; ?>">
+
+                                                      <input type="text" name="edit_category" value="<?php echo htmlspecialchars($cat["name"])?>" required>
+                                                      <button type="submit" style="margin: 0; padding: 6px 12px; ">Save new name</button>
+                                                </form>
+                                          </td>
+                                    </tr>
+                                    <tr>
+                                          <form method="post" action="<?php echo ADMIN_PANEL_ROUTE; ?>">
+                                                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                                                <input type="hidden" name="action" value="edit_category">
+                                                <input type="hidden" name="category_id" value="<?php echo $cat['id']; ?>">
+
+                                                <button type="submit" style="margin: 0; padding: 6px 12px" onclick="return confirm('Are you sure you want to delete this category?')">Delete</button>
+                                          </form>
                                     </tr>
                               <?php } ?>
                         </tbody>

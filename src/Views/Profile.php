@@ -32,8 +32,9 @@
             <a href="<?= EDIT_PROFILE_ROUTE ?>" class="router-button">Edit</a>
             <a href="<?php echo DASHBOARD_USER_ROUTE; ?>" class="router-button">Dashboard</a>
             <a href="<?php echo POSTS_ROUTE; ?>" class="router-button">All Posts</a>
-
-            <h2 class="add-post-title">Add new post</h2>
+            
+            <hr style="margin-top: 25px; margin-bottom: 15px">
+            <h2>Add new post</h2>
             <form method="post" action="<?php echo ADD_NEW_POST_ROUTE ?>" class="post-form">
                 <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
 
@@ -47,10 +48,12 @@
 
         <div>
             <?php if(!empty($userPosts)) {?>
+                <hr style="margin-top: 25px; margin-bottom: 15px">
+
                 <?php foreach($userPosts as $post) {?>
                     <article>
                         <?php if(!empty($editingPostId) && $editingPostId == $post['id']) { ?>
-                            <div class="post-edit">
+                            <div class="post-form">
                                 <form method="post" action="<?php echo EDIT_POST_ROUTE ?>">
                                     <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                                     <input type="hidden" name="post_id" value="<?php echo $post['id']; ?>">
@@ -66,8 +69,8 @@
                                     <label for="edit-status-<?php echo $post['id']; ?>">Change status:</label>
                                     <select name="status" id="edit-status-<?php echo $post['id']; ?>">
                                         <option value="draft">Draft</option>
-                                        <option value="publish">Publish</option>
-                                        <option value="archive">Archive</option>
+                                        <option value="published">Publish</option>
+                                        <option value="archived">Archive</option>
                                     </select>
 
                                     <button type="submit">Save</button>
@@ -79,13 +82,15 @@
                             <p class="post-text"><?php echo nl2br(htmlspecialchars($post['text']), false); ?></p>
                             <p><?php echo $post['created_at']; ?></p>
                             <?php if(empty($_GET["id"])) { ?>
-                                <a href="<?php echo EDIT_POST_ROUTE ?>?post_id=<?php echo($post['id']); ?>" class="router-button">Edit</a>
+                                <div class="post-actions">
+                                    <a href="<?php echo EDIT_POST_ROUTE ?>?post_id=<?php echo($post['id']); ?>" class="router-button">Edit</a>
 
-                                <form method="post" action="<?php echo DELETE_POST_ROUTE; ?>" style="display: inline;">
-                                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-                                    <input type="hidden" name="post_id" value="<?php echo $post['id']; ?>">
-                                    <button type="submit" class="router-button" onclick="return confirm('Are you sure?')">Delete</button>
-                                </form>
+                                    <form method="post" action="<?php echo DELETE_POST_ROUTE; ?>" class="inline-delete-form">
+                                        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                                        <input type="hidden" name="post_id" value="<?php echo $post['id']; ?>">
+                                        <button type="submit" class="router-button" onclick="return confirm('Are you sure?')">Delete</button>
+                                    </form>
+                                </div>
                             <?php } ?>
                         <?php } ?>
                     </article>

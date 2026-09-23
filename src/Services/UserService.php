@@ -161,24 +161,24 @@ readonly class UserService {
         return Result::success("", $userDto);
     }
 
-    public function getUserData(int $userId): ?ProfileUserDto {
+    public function getUserData(int $userId): Result {
         require_once __DIR__ . '/../DTOs/User/ProfileUserDto.php';
 
         if(!isset($_SESSION['id'])) {
-            throw new Exception("Unauthorized access to profile data");
+            return Result::fail("Unauthorized access to profile data");
         }
 
         $user = $this->userRepo->findAllDataById($userId);
 
         if($user == null) {
-            return null;
+            return Result::fail("User not found");
         }
 
         $userData = new ProfileUserDto($user['id'], $user['email'], $user['first_name'], $user['last_name'], $user['role'], 
             $user['phone'] ?? "not provided", $user['location'] ?? "not provided", $user['date_of_birth'] ?? "not provided", 
             $user['bio'] ?? "not provided", $user['image_id'] ?? null);
 
-        return $userData;
+        return Result::success("Successfully fetched user data", $userData);
     }
 
     public function updateUserProfile(ProfileUserDto $dto, ?array $photo, bool $isImageDelete): Result {

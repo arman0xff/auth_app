@@ -13,10 +13,10 @@ readonly class PostService {
 
     public function addNewPost(int $userId, string $title, string $text): int {
         if(empty($title) || strlen($title) < 3 || strlen($title) > 64) {
-            throw new Exception("Title length does not correct");    
+            throw new Exception("Title length is not correct");    
         }
         if(empty($text) || strlen($text) < 10 || strlen($text) > 300) {
-            throw new Exception("Main text length does not correct");    
+            throw new Exception("Main text length is not correct");    
         }
 
         return $this->postRepo->createPost($userId, $title, $text);
@@ -42,10 +42,10 @@ readonly class PostService {
 
     public function updatePost(int $userId, int $postId, string $title, string $text, string $status): Result {
         if(empty($title) || strlen($title) < 3 || strlen($title) > 64) {
-            return Result::fail("Title length does not correct");    
+            return Result::fail("Title length is not correct");    
         }
         if(empty($text) || strlen($text) < 10 || strlen($text) > 300) {
-            return Result::fail("Main text length does not correct");    
+            return Result::fail("Main text length is not correct");    
         }
 
         $eStatus = E_POSTS_STATUSES::tryFrom($status);

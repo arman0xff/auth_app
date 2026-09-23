@@ -44,7 +44,14 @@ readonly class PostController {
         $userId = $_SESSION["id"];
         $postId = $_GET["post_id"] ?? null;
 
-        $userDto = $this->userService->getUserData($userId);
+        $result = $this->userService->getUserData($userId);
+
+        if(!$result->isValid) {
+            http_response_code(400);
+            exit;
+        }
+
+        $userDto = $result->value;
 
         if($userDto == null) {
             $error = "Requested profile ID not found";

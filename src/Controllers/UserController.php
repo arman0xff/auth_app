@@ -8,11 +8,13 @@ use DTOs\User\ProfileUserDto;
 use Services\UserService;
 use Services\AuthService;
 use Services\PostService;
+use Services\CategoryService;
 use Exception;
 use E_SEND_MAIL_RETURN_CODES;
 
 readonly class UserController {
-    public function __construct(private UserService $userService, private AuthService $authService, private PostService $postService) {
+    public function __construct(private UserService $userService, private AuthService $authService, 
+        private PostService $postService, private CategoryService $catService) {
         
     }
 
@@ -249,7 +251,12 @@ readonly class UserController {
         }
 
         $users = $this->userService->getAllUsers();
+        $categories = $this->catService->getAllCategories();
 
+        $this->showAdminPanelForm($users, $categories);
+    }
+
+    public function showAdminPanelForm(?array $users, array $categories): void {
         require_once __DIR__ . '/../Views/AdminPanel.php';
     }
 
@@ -281,8 +288,9 @@ readonly class UserController {
         }
 
         $users = $this->userService->getAllUsers();
+        $categories = $this->catService->getAllCategories();
 
-        require_once __DIR__ . '/../Views/AdminPanel.php';
+        $this->showAdminPanelForm($users, $categories);
     }
 
     public function showModeratorPanel(): void {
@@ -314,7 +322,14 @@ readonly class UserController {
             exit;
         }
         else {
-            $userDto = $this->userService->getUserData($profileId);
+            $result = $this->userService->getUserData($profileId);
+
+            if(!$result->isValid) {
+                http_response_code(400);
+                exit;
+            }
+
+            $userDto = $result->value;
 
             if($userDto == null) {
                 $error = "Requested profile ID not found";
@@ -375,7 +390,14 @@ readonly class UserController {
                 $errors['exception'] = $e->getMessage();
             }
 
-            $userDto = $this->userService->getUserData($userId);
+            $result = $this->userService->getUserData($userId);
+
+            if(!$result->isValid) {
+                http_response_code(400);
+                exit;
+            }
+
+            $userDto = $result->value;
         }
 
         require_once __DIR__ . '/../Views/EditProfile.php';
@@ -389,7 +411,14 @@ readonly class UserController {
             exit;
         }
 
-        $userDto = $this->userService->getUserData($userId);
+        $result = $this->userService->getUserData($userId);
+
+        if(!$result->isValid) {
+            http_response_code(400);
+            exit;
+        }
+
+        $userDto = $result->value;
 
         require_once __DIR__ . '/../Views/EditProfile.php';
     }

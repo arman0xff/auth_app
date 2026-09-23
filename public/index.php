@@ -7,11 +7,13 @@ use Services\UserService;
 use Services\AuthService;
 use Controllers\PostController;
 use Services\PostService;
+use Services\CategoryService;
 use Middlewares\CsrfMiddleware;
 
 use Repositories\UserRepository;
 use Repositories\AuthRepository;
 use Repositories\PostRepository;
+use Repositories\CategoryRepository;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../src/DBConnection.php';
@@ -39,15 +41,21 @@ require_once __DIR__ . '/../src/Interfaces/IPostRepository.php';
 require_once __DIR__ . '/../src/Repositories/PostRepository.php';
 require_once __DIR__ . '/../src/Services/PostService.php';
 
+require_once __DIR__ . '/../src/Interfaces/ICategoryRepository.php';
+require_once __DIR__ . '/../src/Repositories/CategoryRepository.php';
+require_once __DIR__ . '/../src/Services/CategoryService.php';
+
 $authRepo = new AuthRepository($pdo);
 $userRepo = new UserRepository($pdo);
 $postRepo = new PostRepository($pdo);
+$catRepo = new CategoryRepository($pdo);
 
 $authService = new AuthService(new AuthRepository($pdo));
 $userService = new UserService($userRepo, $authService);
 $postService = new PostService($postRepo, $authService);
+$catService = new CategoryService($catRepo);
 
-$userController = new UserController($userService, $authService, $postService);
+$userController = new UserController($userService, $authService, $postService, $catService);
 $postController = new PostController($postService, $userService);
 
 $requestMethod = $_SERVER["REQUEST_METHOD"];
@@ -152,10 +160,10 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
         }
 
         if($requestMethod === "POST") {
-            $userController->showAdminPanel();
+            $userController->editUserDataInAdminPanel();
         }
         else if($requestMethod === "GET") {
-            $userController->editUserDataInAdminPanel();
+            $userController->showAdminPanel();
         }
         else {
             http_response_code(405);
