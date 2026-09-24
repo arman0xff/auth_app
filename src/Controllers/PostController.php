@@ -4,15 +4,16 @@ namespace Controllers;
 
 use Services\UserService;
 use Services\PostService;
+use Services\CategoryService;
 use Exception;
 
 readonly class PostController {
-    public function __construct(private PostService $postService, private UserService $userService) {
+    public function __construct(private PostService $postService, private UserService $userService, private CategoryService $catService) {
         
     }
 
     public function addNewPost(): void {
-        $lastInsertId = $this->postService->addNewPost($_SESSION["id"], $_POST["title"], $_POST["maintext"]);
+        $lastInsertId = $this->postService->addNewPost($_SESSION["id"], $_POST["title"], $_POST["maintext"], $_POST["category"]);
 
         if($lastInsertId == 0) {
             http_response_code(500);
@@ -82,6 +83,8 @@ readonly class PostController {
     public function showAllPosts(): void {
         try {
             $posts = $this->postService->getAllPosts();
+            $categories = $this->catService->getAllCategories();
+
             require_once __DIR__ . '/../Views/Posts.php';
         }
         catch(Exception $e) {

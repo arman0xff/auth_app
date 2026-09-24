@@ -22,6 +22,27 @@
             </p>
         <?php } else { ?>
         <div>
+            <p>Filter by category:</p>
+            <form method="post" action="<?php echo POSTS_ROUTE ?>">
+                <select name="category">
+                    <?php 
+                        if(empty($categories)) { 
+                            echo ('No category added'); 
+                        }
+                        else {
+                            foreach($categories as $cat) { ?> 
+                                <option value="<?php echo $cat['id']?>">
+                                    <?php echo $cat['name']?>
+                                </option>
+                            <?php
+                            }
+                        }
+                    ?>
+                </select>
+
+                <button type="submit"></button>
+            </form>
+
             <?php if(!empty($posts)) {?>
                 <?php foreach($posts as $post) {?>
                     <article>

@@ -52,11 +52,11 @@ $catRepo = new CategoryRepository($pdo);
 
 $authService = new AuthService(new AuthRepository($pdo));
 $userService = new UserService($userRepo, $authService);
-$postService = new PostService($postRepo, $authService);
 $catService = new CategoryService($catRepo);
+$postService = new PostService($postRepo, $authService, $catService);
 
 $userController = new UserController($userService, $authService, $postService, $catService);
-$postController = new PostController($postService, $userService);
+$postController = new PostController($postService, $userService, $catService);
 
 $requestMethod = $_SERVER["REQUEST_METHOD"];
 
@@ -160,7 +160,7 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
         }
 
         if($requestMethod === "POST") {
-            $userController->editUserDataInAdminPanel();
+            $userController->editDataInAdminPanel();
         }
         else if($requestMethod === "GET") {
             $userController->showAdminPanel();

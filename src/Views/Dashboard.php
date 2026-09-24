@@ -46,10 +46,10 @@
                   <a href="<?php echo PROFILE_USER_ROUTE; ?>" class="router-button">My profile</a>
                   <a href="<?php echo POSTS_ROUTE; ?>" class="router-button">All Posts</a>
 
-                  <?php if(isset($_SESSION['role']) && $this->authService->can('access_admin_page')) {?>
+                  <?php if(isset($userDto) && $this->authService->can($userDto->role, 'access_admin_page')) {?>
                         <a href="<?php echo ADMIN_PANEL_ROUTE?>" class="router-button-main">Go to admin panel</a>
                   <?php } ?>
-                  <?php if(isset($_SESSION['role']) && $this->authService->can('access_moderator_page')) {?>
+                  <?php if(isset($userDto) && $this->authService->can($userDto->role, 'access_moderator_page')) {?>
                         <a href="<?php echo MODERATOR_PANEL_ROUTE?>" class="router-button-main">Go to moderator page</a>
                   <?php } ?>
 

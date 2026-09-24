@@ -11,15 +11,39 @@ readonly class CategoryService {
     public function __construct(private ICategoryRepository $categoryRepo) {
     }
 
-    public function addNewCategory(string $name): int {
+    public function addNewCategory(string $name): Result {
         if(empty($name) || strlen($name) < 2 || strlen($name) > 15) {
-            throw new Exception("Text length is not correct");    
+            return Result::fail("Text length is not correct", 0);    
         }
 
-        return $this->categoryRepo->createCategory($name);
+        if(!$this->categoryRepo->createCategory($name)) {
+            return Result::fail("Failed to create category", 1);
+        }
+
+        return Result::success("Category created");
+    }
+
+    public function editCategory(int $id, string $name): Result {
+        if(!$this->categoryRepo->editCategory($id, $name)) {
+            return Result::fail("Failed to edit category");
+        }
+
+        return Result::success("Category edited");
+    }
+
+    public function deleteCategory(int $id): Result {
+        if(!$this->categoryRepo->deleteCategory($id)) {
+            return Result::fail("Failed to delete category");
+        }
+
+        return Result::success("Category deleted");
     }
 
     public function getAllCategories(): ?array {
         return $this->categoryRepo->getAllCategories();
+    }
+
+    public function checkCategoryExistsById(int $id): bool {
+        return $this->categoryRepo->categoryExistsById($id);
     }
 }

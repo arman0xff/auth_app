@@ -8,10 +8,10 @@ use Interfaces\IPostRepository;
 use Result;
 
 readonly class PostService {
-    public function __construct(private IPostRepository $postRepo, private AuthService $authService) {
+    public function __construct(private IPostRepository $postRepo, private AuthService $authService, private CategoryService $catService) {
     }
 
-    public function addNewPost(int $userId, string $title, string $text): int {
+    public function addNewPost(int $userId, string $title, string $text, int $categoryId): int {
         if(empty($title) || strlen($title) < 3 || strlen($title) > 64) {
             throw new Exception("Title length is not correct");    
         }
@@ -19,7 +19,11 @@ readonly class PostService {
             throw new Exception("Main text length is not correct");    
         }
 
-        return $this->postRepo->createPost($userId, $title, $text);
+        if(!$this->catService->checkCategoryExistsById($categoryId)) {
+            throw new Exception("Selected category not found");
+        }
+
+        return $this->postRepo->createPost($userId, $title, $text, $categoryId);
     }
 
     public function getUserPostsByUserId(int $userId): array {

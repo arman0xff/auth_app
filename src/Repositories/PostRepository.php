@@ -30,10 +30,10 @@ readonly class PostRepository implements IPostRepository {
         return $sth->fetchAll();
     }
 
-    public function createPost(int $userId, string $title, string $text): int {
-        $sql = "INSERT INTO `posts` (user_id, title, text) VALUES (:userId, :title, :text)";
+    public function createPost(int $userId, string $title, string $text, int $categoryId): int {
+        $sql = "INSERT INTO `posts` (user_id, title, text, category_id) VALUES (:userId, :title, :text, :categoryId)";
         $sth = $this->pdo->prepare($sql);
-        $sth->execute(["userId" => $userId, "title" => $title, "text" => $text]);
+        $sth->execute(["userId" => $userId, "title" => $title, "text" => $text, "categoryId" => $categoryId]);
 
         return $this->pdo->lastInsertId();
     }

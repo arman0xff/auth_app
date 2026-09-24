@@ -40,8 +40,24 @@
 
                 <label for="title">Write a title</label>
                 <input type="text" id="title" name="title" placeholder="Type title" required>
-                <label for="maintext">Write a main text</label>
-                <textarea name="maintext" id="maintext" placeholder="Type main text"></textarea>
+                <label for="maintext">Write a text</label>
+                <textarea name="maintext" id="maintext" placeholder="Type text"></textarea>
+                <label for="category">Select category</label>
+                <select name="category" id="category">
+                    <?php 
+                        if(empty($categories)) { 
+                            echo ('No category added'); 
+                        }
+                        else { 
+                            foreach($categories as $cat) { ?> 
+                                <option value="<?php echo $cat['id']?>">
+                                    <?php echo $cat['name']?>
+                                </option>
+                            <?php
+                            }
+                        }
+                    ?>
+                </select>
                 <button type="submit">Add new post</button>
             </form>
         <?php } ?>

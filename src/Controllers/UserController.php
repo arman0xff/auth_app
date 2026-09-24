@@ -260,36 +260,58 @@ readonly class UserController {
         require_once __DIR__ . '/../Views/AdminPanel.php';
     }
 
-    public function editUserDataInAdminPanel(): void {
+    public function editDataInAdminPanel(): void {
         $role = $this->authService->refreshUserRole($_SESSION['id']);
 
         if(!$this->authService->can($role, 'access_admin_page')) {
             http_response_code(403);
             $error = "You don't have permission to view this page";
         }
-    
-        $userId = $_POST["user_id"] ?? null;
-        $newRole = $_POST["new_role"] ?? null;
 
-        if($userId == null || $newRole == null) {
-            $error = "User id and new role are required";
-        }
-        else if(!$this->authService->can($role, 'manage_users')) {
-            $error = "You don't have permission to change user roles";
-        }
-        else {
-            try {
-                $this->authService->changeUserRole($userId, $newRole);
-                header('Location: ' . ADMIN_PANEL_ROUTE);
-                exit;
-            } catch(Exception $e) {
-                $error = $e->getMessage();
+        $action = $_POST['action'] ?? null;
+
+        switch($action) {
+            case 'create_cat': {
+                $result = $this->catService->addNewCategory($_POST['cat_name']);
+                break;
             }
+            case 'edit_cat': {
+                $result = $this->catService->editCategory($_POST['cat_id'], $_POST['edit_cat']);
+                break;
+            }
+            case 'delete_cat': {
+                $result = $this->catService->deleteCategory($_POST['cat_id']);
+                break;
+            }
+            default: {
+                $userId = $_POST["user_id"] ?? null;
+                $newRole = $_POST["new_role"] ?? null;
+
+                if($userId == null || $newRole == null) {
+                    $error = "User id and new role are required";
+                }
+                else if(!$this->authService->can($role, 'manage_users')) {
+                    $error = "You don't have permission to change user roles";
+                }
+                else {
+                    try {
+                        $this->authService->changeUserRole($userId, $newRole);
+                        header('Location: ' . ADMIN_PANEL_ROUTE);
+                        exit;
+                    } catch(Exception $e) {
+                        $error = $e->getMessage();
+                    }
+                }
+            }
+        }
+
+        if(isset($result) && !$result->isValid) {
+            $error = $result->message;
         }
 
         $users = $this->userService->getAllUsers();
         $categories = $this->catService->getAllCategories();
-
+        
         $this->showAdminPanelForm($users, $categories);
     }
 
@@ -341,6 +363,8 @@ readonly class UserController {
                 $userPosts = $this->postService->getUserPostsByUserId($profileId);
             }
         }
+
+        $categories = $this->catService->getAllCategories();
 
         require_once __DIR__ . '/../Views/Profile.php';
     }

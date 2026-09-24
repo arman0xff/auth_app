@@ -65,10 +65,10 @@
 
                   <form method="post" action="<?php echo ADMIN_PANEL_ROUTE; ?>">
                         <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-                        <input type="hidden" name="action" value="create_category">
+                        <input type="hidden" name="action" value="create_cat">
 
-                        <label for="category_name">Category name</label>
-                        <input type="text" id="category_name" name="category_name" required>
+                        <label for="cat_name">Category name</label>
+                        <input type="text" id="cat_name" name="cat_name" required>
                         <button type="submit">Add category</button>
                   </form>
 
@@ -85,22 +85,24 @@
                                           <td>  
                                                 <form method="post" action="<?php echo ADMIN_PANEL_ROUTE; ?>">
                                                       <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-                                                      <input type="hidden" name="action" value="edit_category">
-                                                      <input type="hidden" name="category_id" value="<?php echo $cat['id']; ?>">
+                                                      <input type="hidden" name="action" value="edit_cat">
+                                                      <input type="hidden" name="cat_id" value="<?php echo $cat['id']; ?>">
 
-                                                      <input type="text" name="edit_category" value="<?php echo htmlspecialchars($cat["name"])?>" required>
+                                                      <input type="text" name="edit_cat" value="<?php echo htmlspecialchars($cat["name"])?>" required>
                                                       <button type="submit" style="margin: 0; padding: 6px 12px; ">Save new name</button>
                                                 </form>
                                           </td>
                                     </tr>
                                     <tr>
-                                          <form method="post" action="<?php echo ADMIN_PANEL_ROUTE; ?>">
-                                                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-                                                <input type="hidden" name="action" value="edit_category">
-                                                <input type="hidden" name="category_id" value="<?php echo $cat['id']; ?>">
+                                          <td>
+                                                <form method="post" action="<?php echo ADMIN_PANEL_ROUTE; ?>">
+                                                      <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                                                      <input type="hidden" name="action" value="delete_cat">
+                                                      <input type="hidden" name="cat_id" value="<?php echo $cat['id']; ?>">
 
-                                                <button type="submit" style="margin: 0; padding: 6px 12px" onclick="return confirm('Are you sure you want to delete this category?')">Delete</button>
-                                          </form>
+                                                      <button type="submit" style="margin: 0; padding: 6px 12px" onclick="return confirm('Are you sure you want to delete this category?')">Delete</button>
+                                                </form>
+                                          </td>
                                     </tr>
                               <?php } ?>
                         </tbody>
