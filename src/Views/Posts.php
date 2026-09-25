@@ -23,8 +23,12 @@
         <?php } else { ?>
         <div>
             <p>Filter by category:</p>
-            <form method="post" action="<?php echo POSTS_ROUTE ?>">
+            <form method="get" action="<?php echo POSTS_ROUTE ?>">
                 <select name="category">
+                    <option value="<?php echo 0?>">
+                        All categories
+                    </option>
+
                     <?php 
                         if(empty($categories)) { 
                             echo ('No category added'); 
@@ -32,7 +36,8 @@
                         else {
                             foreach($categories as $cat) { ?> 
                                 <option value="<?php echo $cat['id']?>">
-                                    <?php echo $cat['name']?>
+                                    <?php echo (isset($_GET['category']) && $_GET['category'] == $cat['id']) ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($cat['name']); ?>
                                 </option>
                             <?php
                             }
@@ -40,7 +45,7 @@
                     ?>
                 </select>
 
-                <button type="submit"></button>
+                <button type="submit">Apply filter</button>
             </form>
 
             <?php if(!empty($posts)) {?>

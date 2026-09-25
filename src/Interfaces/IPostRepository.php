@@ -9,5 +9,6 @@ interface IPostRepository {
     public function updatePostData(int $postId, string $title, string $text, \E_POSTS_STATUSES $status);
     public function deletePostById(int $postId);
     public function getAllPosts();
+    public function getAllPostsWithCategory(int $categoryId);
     public function findPostById(int $postId);
 }

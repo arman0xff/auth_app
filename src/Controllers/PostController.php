@@ -66,6 +66,7 @@ readonly class PostController {
         }
 
         $editingPostId = $postId;
+        $categories = $this->catService->getAllCategories();
 
         require_once __DIR__ . '/../Views/Profile.php';
     }
@@ -82,7 +83,15 @@ readonly class PostController {
 
     public function showAllPosts(): void {
         try {
-            $posts = $this->postService->getAllPosts();
+            $categoryId = $_GET['category'] ?? null;
+
+            if(empty($categoryId) || $categoryId == 0) {
+                $posts = $this->postService->getAllPosts();
+            }
+            else {
+                $posts = $this->postService->getAllPostsWithCategory($categoryId);
+            }
+
             $categories = $this->catService->getAllCategories();
 
             require_once __DIR__ . '/../Views/Posts.php';

@@ -105,4 +105,14 @@ readonly class PostService {
 
         return $res;
     }
+
+    public function getAllPostsWithCategory(int $categoryId): array {
+        $res = $this->postRepo->getAllPostsWithCategory($categoryId);
+
+        if(sizeof($res) == 0) {
+            throw new Exception("No post found");
+        }
+
+        return $res;
+    }
 }
