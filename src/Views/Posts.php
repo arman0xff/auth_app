@@ -55,6 +55,9 @@
                         <h2 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h2>
                         <p class="post-text"><?php echo nl2br(htmlspecialchars($post['text']), false); ?></p>
                         <p class="post-date"><?php echo $post['created_at']; ?></p>
+                        <?php foreach($tags as $post) {?>
+
+                        ?>
                     </article>
                     <?php } ?>
                 <?php } ?>

@@ -14,11 +14,8 @@ readonly class TagService {
     public function addMultipleTags(array $tags): Result {
         foreach($tags as &$tag) {
             if(strlen($tag) < 2 || strlen($tag) > 8) {
-                Result::fail("Tag \"" . $tag . "\" have incorrect length");
+                return Result::fail("Tag \"" . $tag . "\" have incorrect length");
             }
-
-            $tag = strtolower($tag);
-            $tag = trim($tag);
         }
 
         $this->tagRepo->createMultipleTags($tags);

@@ -30,8 +30,13 @@ readonly class PostService {
             return Result::fail("Failed to create post");
         }
 
-        if(isset($tags)) {
+        if(empty($tags)) {
             $tagsArray = explode(",", $tags);
+
+            foreach($tagsArray as &$tag) {
+                $tag = strtolower($tag);
+                $tag = trim($tag);
+            }
 
             $this->tagService->addMultipleTags($tagsArray);
             $tagsIdsArray = $this->tagService->getTagsIdsWithName($tagsArray);
@@ -122,13 +127,13 @@ readonly class PostService {
         return $res;
     }
 
-    public function getAllPostsWithCategory(int $categoryId): array {
+    public function getAllPostsWithCategory(int $categoryId): Result {
         $res = $this->postRepo->getAllPostsWithCategory($categoryId);
 
         if(sizeof($res) == 0) {
-            throw new Exception("No post found");
+            return Result::fail("No post found in selected category", []);
         }
 
-        return $res;
+        return Result::fail("", $res);
     }
 }

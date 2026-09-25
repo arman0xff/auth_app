@@ -89,7 +89,8 @@ readonly class PostController {
                 $posts = $this->postService->getAllPosts();
             }
             else {
-                $posts = $this->postService->getAllPostsWithCategory($categoryId);
+                $result = $this->postService->getAllPostsWithCategory($categoryId);
+                $posts = $result->value;
             }
 
             $categories = $this->catService->getAllCategories();
