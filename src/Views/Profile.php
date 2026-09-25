@@ -58,6 +58,10 @@
                         }
                     ?>
                 </select>
+
+                <label for="tags">Select tags</label>
+                <input type="text" name="tags" id="tags">
+
                 <button type="submit">Add new post</button>
             </form>
         <?php } ?>

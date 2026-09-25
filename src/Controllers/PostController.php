@@ -13,9 +13,9 @@ readonly class PostController {
     }
 
     public function addNewPost(): void {
-        $lastInsertId = $this->postService->addNewPost($_SESSION["id"], $_POST["title"], $_POST["maintext"], $_POST["category"]);
+        $result = $this->postService->addNewPost($_SESSION["id"], $_POST["title"], $_POST["maintext"], $_POST["category"], $_POST["tags"]);
 
-        if($lastInsertId == 0) {
+        if(!$result->isValid) {
             http_response_code(500);
             header('Location: ' . PROFILE_USER_ROUTE);
             exit;

@@ -8,12 +8,14 @@ use Services\AuthService;
 use Controllers\PostController;
 use Services\PostService;
 use Services\CategoryService;
+use Services\TagService;
 use Middlewares\CsrfMiddleware;
 
 use Repositories\UserRepository;
 use Repositories\AuthRepository;
 use Repositories\PostRepository;
 use Repositories\CategoryRepository;
+use Repositories\TagRepository;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../src/DBConnection.php';
@@ -45,15 +47,22 @@ require_once __DIR__ . '/../src/Interfaces/ICategoryRepository.php';
 require_once __DIR__ . '/../src/Repositories/CategoryRepository.php';
 require_once __DIR__ . '/../src/Services/CategoryService.php';
 
+require_once __DIR__ . '/../src/Interfaces/ITagRepository.php';
+require_once __DIR__ . '/../src/Repositories/TagRepository.php';
+require_once __DIR__ . '/../src/Services/TagService.php';
+
 $authRepo = new AuthRepository($pdo);
 $userRepo = new UserRepository($pdo);
 $postRepo = new PostRepository($pdo);
 $catRepo = new CategoryRepository($pdo);
+$tagRepo = new TagRepository($pdo);
 
 $authService = new AuthService(new AuthRepository($pdo));
 $userService = new UserService($userRepo, $authService);
 $catService = new CategoryService($catRepo);
-$postService = new PostService($postRepo, $authService, $catService);
+$tagService = new TagService($tagRepo);
+
+$postService = new PostService($postRepo, $authService, $catService, $tagService);
 
 $userController = new UserController($userService, $authService, $postService, $catService);
 $postController = new PostController($postService, $userService, $catService);

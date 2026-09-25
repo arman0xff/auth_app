@@ -8,22 +8,38 @@ use Interfaces\IPostRepository;
 use Result;
 
 readonly class PostService {
-    public function __construct(private IPostRepository $postRepo, private AuthService $authService, private CategoryService $catService) {
+    public function __construct(private IPostRepository $postRepo, private AuthService $authService, private CategoryService $catService,
+        private TagService $tagService) {
     }
 
-    public function addNewPost(int $userId, string $title, string $text, int $categoryId): int {
+    public function addNewPost(int $userId, string $title, string $text, int $categoryId, ?string $tags): Result {
         if(empty($title) || strlen($title) < 3 || strlen($title) > 64) {
-            throw new Exception("Title length is not correct");    
+            return Result::fail("Title length is not correct");    
         }
         if(empty($text) || strlen($text) < 10 || strlen($text) > 300) {
-            throw new Exception("Main text length is not correct");    
+            return Result::fail("Main text length is not correct");    
         }
 
         if(!$this->catService->checkCategoryExistsById($categoryId)) {
-            throw new Exception("Selected category not found");
+            return Result::fail("Selected category not found");
         }
 
-        return $this->postRepo->createPost($userId, $title, $text, $categoryId);
+        $postId = $this->postRepo->createPost($userId, $title, $text, $categoryId);
+
+        if($postId == 0) {
+            return Result::fail("Failed to create post");
+        }
+
+        if(isset($tags)) {
+            $tagsArray = explode(",", $tags);
+
+            $this->tagService->addMultipleTags($tagsArray);
+            $tagsIdsArray = $this->tagService->getTagsIdsWithName($tagsArray);
+            error_log(implode(", ", $tagsIdsArray));
+            $this->tagService->addMultiplePostsTags($postId, $tagsIdsArray);
+        }
+
+        return Result::success("Post created successfully");
     }
 
     public function getUserPostsByUserId(int $userId): array {

@@ -1,0 +1,15 @@
+CREATE TABLE `tags` (
+	`id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+	`name` VARCHAR(50) NOT NULL UNIQUE,
+	PRIMARY KEY (`id`)
+)
+COLLATE='utf8mb4_0900_ai_ci';
+
+CREATE TABLE `post_tags` (
+	`post_id` INT UNSIGNED NOT NULL,
+	`tag_id` INT UNSIGNED NOT NULL,
+	PRIMARY KEY (`post_id`, `tag_id`),
+	CONSTRAINT `post_id_fk` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON UPDATE CASCADE ON DELETE CASCADE,
+	CONSTRAINT `tag_id_fk` FOREIGN KEY (`tag_id`) REFERENCES `tags` (`id`) ON UPDATE CASCADE ON DELETE CASCADE
+)
+COLLATE='utf8mb4_0900_ai_ci';
