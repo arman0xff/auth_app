@@ -64,18 +64,18 @@ readonly class PostRepository implements IPostRepository {
     }
 
     public function getAllPosts(): array {
-        $sql = "SELECT p.`user_id`, p.`title`, p.`text`, p.`created_at`, u.`first_name`, u.`last_name`, u.`image_id`, pt.`tag_id`
-            FROM `posts` p JOIN `users` u ON p.`user_id` = u.`id` JOIN `post_tags` pt ON pt.`pots_id` = p.`id` WHERE p.`status` = 'published' 
-            ORDER BY `created_at` DESC";
+        $sql = "SELECT p.`user_id`, p.`title`, p.`text`, p.`created_at`, u.`first_name`, u.`last_name`, u.`image_id`, GROUP_CONCAT(t.`name`) AS `tags`
+            FROM `posts` p JOIN `users` u ON p.`user_id` = u.`id` LEFT JOIN `post_tags` pt ON pt.`post_id` = p.`id` LEFT JOIN `tags` t ON t.`id` = pt.`tag_id` WHERE p.`status` = 'published' 
+            GROUP BY p.`id` ORDER BY `created_at` DESC";
         $sth = $this->pdo->query($sql);
 
         return $sth->fetchAll();
     }
 
     public function getAllPostsWithCategory(int $categoryId): array {
-        $sql = "SELECT p.`user_id`, p.`title`, p.`text`, p.`created_at`, u.`first_name`, u.`last_name`, u.`image_id`, pt.`tag_id`
-            FROM `posts` p JOIN `users` u ON p.`user_id` = u.`id` JOIN `post_tags` pt ON pt.`pots_id` = p.`id` WHERE p.`status` = 'published' 
-            AND p.`category_id` = :categoryId ORDER BY `created_at` DESC";
+        $sql = "SELECT p.`user_id`, p.`title`, p.`text`, p.`created_at`, u.`first_name`, u.`last_name`, u.`image_id`, GROUP_CONCAT(t.`name`) AS `tags`
+            FROM `posts` p JOIN `users` u ON p.`user_id` = u.`id` LEFT JOIN `post_tags` pt ON pt.`post_id` = p.`id` LEFT JOIN `tags` t ON t.`id` = pt.`tag_id` WHERE p.`status` = 'published' 
+            AND p.`category_id` = :categoryId GROUP BY p.`id` ORDER BY `created_at` DESC";
         $sth = $this->pdo->prepare($sql);
         $sth->execute(["categoryId" => $categoryId]);
 

@@ -30,7 +30,7 @@ readonly class PostService {
             return Result::fail("Failed to create post");
         }
 
-        if(empty($tags)) {
+        if(!empty($tags)) {
             $tagsArray = explode(",", $tags);
 
             foreach($tagsArray as &$tag) {
@@ -134,6 +134,6 @@ readonly class PostService {
             return Result::fail("No post found in selected category", []);
         }
 
-        return Result::fail("", $res);
+        return Result::success("", $res);
     }
 }

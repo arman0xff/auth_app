@@ -55,9 +55,15 @@
                         <h2 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h2>
                         <p class="post-text"><?php echo nl2br(htmlspecialchars($post['text']), false); ?></p>
                         <p class="post-date"><?php echo $post['created_at']; ?></p>
-                        <?php foreach($tags as $post) {?>
-
-                        ?>
+                        
+                        <?php if(!empty($post['tags'])) { ?>
+                            <div class="post-tags">
+                                <strong>Tags:</strong>
+                                <?php foreach(explode(', ', $post['tags']) as $tagName) { ?>
+                                    <span class="tag-badge">#<?php echo htmlspecialchars($tagName); ?></span>
+                                <?php } ?>
+                            </div>
+                        <?php } ?>
                     </article>
                     <?php } ?>
                 <?php } ?>
