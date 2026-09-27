@@ -282,3 +282,17 @@ img {
     width: 150px;
     height: 150px;
 }
+
+.post-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.post-gallery-item {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 6px;
+}

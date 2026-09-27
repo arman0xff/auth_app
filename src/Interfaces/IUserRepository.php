@@ -13,8 +13,8 @@ interface IUserRepository {
     public function findAll();
     public function updatePassword(string $token, string $password);
     public function updateUserProfile(int $userId, array $data);
-    public function setImageId(int $userId, ?int $imageId);
-    public function findUserImageId(int $userId);
+    public function setProfileImageName(int $userId, ?string $imageName = null);
+    public function findUserImageName(int $userId);
 
     // tokens
     public function createUserToken(int $userId, string $token, string $type);

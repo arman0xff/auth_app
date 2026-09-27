@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 session_save_path(__DIR__ . "/storage/sessions");
 
 use Controllers\UserController;
 use Services\UserService;
 use Services\AuthService;
+use Services\ImagesService;
 use Controllers\PostController;
 use Services\PostService;
 use Services\CategoryService;
@@ -13,6 +16,7 @@ use Middlewares\CsrfMiddleware;
 
 use Repositories\UserRepository;
 use Repositories\AuthRepository;
+use Repositories\ImagesRepository;
 use Repositories\PostRepository;
 use Repositories\CategoryRepository;
 use Repositories\TagRepository;
@@ -51,18 +55,24 @@ require_once __DIR__ . '/../src/Interfaces/ITagRepository.php';
 require_once __DIR__ . '/../src/Repositories/TagRepository.php';
 require_once __DIR__ . '/../src/Services/TagService.php';
 
+require_once __DIR__ . '/../src/Interfaces/IImagesRepository.php';
+require_once __DIR__ . '/../src/Repositories/ImagesRepository.php';
+require_once __DIR__ . '/../src/Services/ImagesService.php';
+
 $authRepo = new AuthRepository($pdo);
+$imagesRepo = new ImagesRepository($pdo);
 $userRepo = new UserRepository($pdo);
 $postRepo = new PostRepository($pdo);
 $catRepo = new CategoryRepository($pdo);
 $tagRepo = new TagRepository($pdo);
 
 $authService = new AuthService(new AuthRepository($pdo));
+$imagesService = new ImagesService($imagesRepo);
 $userService = new UserService($userRepo, $authService);
 $catService = new CategoryService($catRepo);
 $tagService = new TagService($tagRepo);
 
-$postService = new PostService($postRepo, $authService, $catService, $tagService);
+$postService = new PostService($postRepo, $authService, $catService, $tagService, $imagesService);
 
 $userController = new UserController($userService, $authService, $postService, $catService);
 $postController = new PostController($postService, $userService, $catService);

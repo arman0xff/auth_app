@@ -5,6 +5,8 @@ namespace Controllers;
 use Services\UserService;
 use Services\PostService;
 use Services\CategoryService;
+use Services\ImagesService;
+use Services\E_IMAGES_TYPES;
 use Exception;
 
 readonly class PostController {
@@ -13,7 +15,7 @@ readonly class PostController {
     }
 
     public function addNewPost(): void {
-        $result = $this->postService->addNewPost($_SESSION["id"], $_POST["title"], $_POST["maintext"], $_POST["category"], $_POST["tags"]);
+        $result = $this->postService->addNewPost($_SESSION["id"], $_POST["title"], $_POST["maintext"], $_POST["category"], $_POST["tags"], $_FILES['images'] ?? null);
 
         if(!$result->isValid) {
             http_response_code(500);
@@ -58,10 +60,10 @@ readonly class PostController {
             $error = "Requested profile ID not found";
         }
         else {
-            if(isset($userDto->profileImageId)) {
-                $profileImageUrl = $this->userService->getProfileImageUrl($userDto->profileImageId);
+            if(isset($userDto->profileImageName)) {
+                $profileImageUrl = ImagesService::getWebDirByType(E_IMAGES_TYPES::Profile) . $userDto->profileImageName;
             }
-            
+
             $userPosts = $this->postService->getUserPostsByUserId($userId);
         }
 

@@ -35,7 +35,7 @@
             
             <hr style="margin-top: 25px; margin-bottom: 15px">
             <h2>Add new post</h2>
-            <form method="post" action="<?php echo ADD_NEW_POST_ROUTE ?>" class="post-form">
+            <form method="post" action="<?php echo ADD_NEW_POST_ROUTE ?>" class="post-form" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
 
                 <label for="title">Write a title</label>
@@ -46,6 +46,7 @@
                 <select name="category" id="category">
                     <?php 
                         if(empty($categories)) { 
+                            
                             echo ('No category added'); 
                         }
                         else { 
@@ -62,9 +63,12 @@
                 <label for="tags">Select tags</label>
                 <input type="text" name="tags" id="tags">
 
+                <input type="hidden" name="MAX_FILE_SIZE" value="2097152"> 
+                Choose images for post: <input type="file" name="images[]" size="10" multiple><br /><br />
+
                 <button type="submit">Add new post</button>
             </form>
-        <?php } ?>
+        <?php } ?> 
 
         <div>
             <?php if(!empty($userPosts)) {?>
@@ -109,8 +113,16 @@
                                         <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                                         <input type="hidden" name="post_id" value="<?php echo $post['id']; ?>">
                                         <button type="submit" class="router-button" onclick="return confirm('Are you sure?')">Delete</button>
-                                    </form>
+                                    </form> 
                                 </div>
+                            <?php } ?>
+
+                            <?php if (!empty($post['images'])) { ?>
+                            <div class="post-images">
+                                <?php foreach(explode(',', $post['images']) as $imageName) { ?>
+                                    <img src="<?php echo htmlspecialchars(\Services\ImagesService::getWebDirByType(\Services\E_IMAGES_TYPES::Post) . $imageName) ?>" alt="Post image" class="post-images">
+                                <?php } ?>
+                            </div>
                             <?php } ?>
                         <?php } ?>
                     </article>

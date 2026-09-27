@@ -9,6 +9,8 @@ use Services\UserService;
 use Services\AuthService;
 use Services\PostService;
 use Services\CategoryService;
+use Services\ImagesService;
+use Services\E_IMAGES_TYPES;
 use Exception;
 use E_SEND_MAIL_RETURN_CODES;
 
@@ -357,8 +359,8 @@ readonly class UserController {
                 $error = "Requested profile ID not found";
             }
             else {
-                if(isset($userDto->profileImageId)) {
-                    $profileImageUrl = $this->userService->getProfileImageUrl($userDto->profileImageId);
+                if(isset($userDto->profileImageName)) {
+                    $profileImageUrl = ImagesService::getWebDirByType(E_IMAGES_TYPES::Profile) . $userDto->profileImageName;
                 }
                 $userPosts = $this->postService->getUserPostsByUserId($profileId);
             }

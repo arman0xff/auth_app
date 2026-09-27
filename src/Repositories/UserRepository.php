@@ -6,7 +6,6 @@ use PDO;
 use Interfaces\IUserRepository;
 use Exception;
 use E_SEND_MAIL_RETURN_CODES;
-use Override;
 
 readonly class UserRepository implements IUserRepository {
     public function __construct(private PDO $pdo) {
@@ -233,28 +232,28 @@ readonly class UserRepository implements IUserRepository {
     }
 
     public function updateUserProfile(int $userId, array $data): bool {
-        $sql = "UPDATE `users` SET `first_name` = :firstName, `last_name` = :lastName, `phone` = :phone, `location` = :location, `date_of_birth` = :date_of_birth, `bio` = :bio, `image_id` = :imageId WHERE `id` = :userId";
+        $sql = "UPDATE `users` SET `first_name` = :firstName, `last_name` = :lastName, `phone` = :phone, `location` = :location, `date_of_birth` = :date_of_birth, `bio` = :bio, `profile_image_name` = :profileImageName WHERE `id` = :userId";
         $sth = $this->pdo->prepare($sql);
         return $sth->execute([
             "firstName" => $data["first_name"], "lastName" => $data["last_name"], "phone" => $data["phone"], "location" => $data["location"], 
-            "date_of_birth" => $data["date_of_birth"], "bio" => $data["bio"], "userId" => $userId, "imageId" => $data["image_id"]]
+            "date_of_birth" => $data["date_of_birth"], "bio" => $data["bio"], "userId" => $userId, "profileImageName" => $data["profile_image_name"]]
         );
     }
 
-    public function findUserImageId(int $userId): ?int {
-        $sql = "SELECT `image_id` FROM `users` WHERE `id` = :userId";
+    public function findUserImageName(int $userId): ?string {
+        $sql = "SELECT `profile_image_name` FROM `users` WHERE `id` = :userId";
         $sth = $this->pdo->prepare($sql);
         $sth->execute(["userId" => $userId]);
 
         $result = $sth->fetchColumn();
-        return $result == false ? null : (int)$result;
+        return $result == false ? null : (string)$result;
     }
 
-    public function setImageId(int $userId, ?int $imageId): bool {
-        $sql = "UPDATE `users` SET `image_id` = :imageId WHERE `id` = :userId";
+    public function setProfileImageName(int $userId, ?string $imageName = null): bool {
+        $sql = "UPDATE `users` SET `profile_image_name` = :profileImageName WHERE `id` = :userId";
         $sth = $this->pdo->prepare($sql);
         $sth->execute([
-            "imageId" => $imageId, "userId" => $userId]
+            "profileImageName" => $imageName, "userId" => $userId]
         );
 
         return $sth->rowCount() > 0;

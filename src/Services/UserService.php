@@ -176,7 +176,7 @@ readonly class UserService {
 
         $userData = new ProfileUserDto($user['id'], $user['email'], $user['first_name'], $user['last_name'], $user['role'], 
             $user['phone'] ?? "not provided", $user['location'] ?? "not provided", $user['date_of_birth'] ?? "not provided", 
-            $user['bio'] ?? "not provided", $user['image_id'] ?? null);
+            $user['bio'] ?? "not provided", $user['profile_image_name'] ?? null);
 
         return Result::success("Successfully fetched user data", $userData);
     }
@@ -196,39 +196,39 @@ readonly class UserService {
             return Result::fail("Validation error", $errors);
         }
 
-        $currentImageId = $this->userRepo->findUserImageId($dto->id);
+        $currentImageName = $this->userRepo->findUserImageName($dto->id);
 
-        $uploadDir = __DIR__ . '/../../public/storage/uploads/';
+        $uploadDir = __DIR__ . '/../../public/storage/uploads/profile_images';
 
         if($isImageDelete) {
-            if(isset($currentImageId)) {
-                $this->deleteOldProfileImage($currentImageId, $uploadDir);
-                $currentImageId = null;
+            if(isset($currentImageName)) {
+                ImagesService::deleteImage(E_IMAGES_TYPES::Profile, $currentImageName);
+                $this->userRepo->setProfileImageName($dto->id);
+
+                $currentImageName = null;
             }
         }
         else if(isset($photo) && $photo['error'] === UPLOAD_ERR_OK) {
-            $nextFileId = $this->getLastUploadId() + 1;
-
             $parts = explode(".", $photo['name']);
             $type = end($parts);
             
-            if($type != "jpg" && $type != "png") {
-                $errors['image'] = "You need to upload jpg or png photos";
+            if(!ImagesService::isImageTypeSupported($type)) {
+                $errors['image'] = ImagesService::getImageTypeSupportingError();
                 return Result::fail("Validation error", $errors);
             }
 
-            $targetFilePath = $uploadDir . "profile_image_" . $nextFileId . "_" . basename($photo['name']);
+            $result = ImagesService::uploadNewImage(E_IMAGES_TYPES::Profile, $photo['tmp_name'], $type);
 
-            if(!move_uploaded_file($photo['tmp_name'], $targetFilePath)) {
-                $errors['image'] = "Failed to upload profile picture";
+            if(!$result->isValid) {
+                $errors['image'] = $result->message;
                 return Result::fail("Validation error", $errors);
             }
             else {
-                if(isset($currentImageId)) {
-                    $this->deleteOldProfileImage($currentImageId, $uploadDir);
+                if(isset($currentImageName)) {
+                    ImagesService::deleteImage(E_IMAGES_TYPES::Profile, $currentImageName);
                 }
 
-                $currentImageId = $nextFileId;
+                $currentImageName = $result->value;
             }
         }
 
@@ -239,7 +239,7 @@ readonly class UserService {
             'location' => $dto->location,
             'date_of_birth' => $dto->dateOfBirth,
             'bio' => $dto->bio,
-            'image_id' => $currentImageId
+            'profile_image_name' => $currentImageName
         ])) {
             return Result::fail("Server error", $errors['server'] = "Failed to update profile");
         }
@@ -247,54 +247,8 @@ readonly class UserService {
         return Result::success("Profile updated successfully");
     }
 
-    public function getLastUploadId(): int {
-        $uploadDir = __DIR__ . '/../../public/storage/uploads/';
-        $files = array_diff(scandir($uploadDir), ['.', '..']);
-        $files = array_filter($files, function($file) {
-            return str_starts_with($file, "profile_image_");
-        });
-
-        if(sizeof($files) < 1) {
-            return 0;
-        }
-
-        natsort($files);
-        $formatted = explode("_", end($files));
-        $lastId = (int)$formatted[2];
-
-        return $lastId;
-    }
-
-    public function deleteOldProfileImage(int $imageId, string $uploadDir): void {
-        if(!is_dir($uploadDir)) {
-            return;
-        }
-
-        $files = array_diff(scandir($uploadDir), ['.', '..']);
-        
-        foreach ($files as $file) {
-            $formatted = explode('_', $file);
-            if(sizeof($formatted) >= 3 && $imageId === (int)$formatted[2]) {
-                @unlink($uploadDir . $file);
-            }
-        }
-    }
-
-    public function setImageId(int $userId, ?int $nextFileId): bool {
-        return $this->userRepo->setImageId($userId, $nextFileId);
-    }
-
-    public function getProfileImageUrl(int $imageId): ?string {
-        $uploadDir = __DIR__ . '/../../public/storage/uploads/';
-        $files = array_diff(scandir($uploadDir, SCANDIR_SORT_ASCENDING), ['.', '..']);
-        foreach ($files as $file) {
-            $formatted = explode("_", $file);
-
-            if(file_exists($uploadDir . $file) && sizeof($formatted) >= 3 && $imageId === (int)$formatted[2]) {
-                return '/storage/uploads/' . $file;
-            }
-        }
-        return null;
+    public function setProfileImageName(int $userId, ?string $imageName): bool {
+        return $this->userRepo->setProfileImageName($userId, $imageName);
     }
 
     // tokens

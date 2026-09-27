@@ -1,4 +1,6 @@
 <?php use DTOs\User\ProfileUserDto;
+use Services\E_IMAGES_TYPES;
+
 /** @var ?ProfileUserDto $userDto */
 ?>
 
@@ -61,6 +63,14 @@
                                 <strong>Tags:</strong>
                                 <?php foreach(explode(', ', $post['tags']) as $tagName) { ?>
                                     <span class="tag-badge">#<?php echo htmlspecialchars($tagName); ?></span>
+                                <?php } ?>
+                            </div>
+                        <?php } ?>
+
+                        <?php if (!empty($post['images'])) { ?>
+                            <div class="post-images">
+                                <?php foreach(explode(',', $post['images']) as $imageName) { ?>
+                                    <img src="<?php echo htmlspecialchars(\Services\ImagesService::getWebDirByType(E_IMAGES_TYPES::Post) . $imageName) ?>" alt="Post image" class="post-images">
                                 <?php } ?>
                             </div>
                         <?php } ?>

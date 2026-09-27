@@ -2,17 +2,20 @@
 
 namespace Services;
 
+use ArrayAccess;
 use E_POSTS_STATUSES;
 use Exception;
 use Interfaces\IPostRepository;
 use Result;
+use Services\ImagesService;
+use Services\E_IMAGES_TYPES;
 
 readonly class PostService {
     public function __construct(private IPostRepository $postRepo, private AuthService $authService, private CategoryService $catService,
-        private TagService $tagService) {
+        private TagService $tagService, private ImagesService $imagesService) {
     }
 
-    public function addNewPost(int $userId, string $title, string $text, int $categoryId, ?string $tags): Result {
+    public function addNewPost(int $userId, string $title, string $text, int $categoryId, ?string $tags, ?array $images = null): Result {
         if(empty($title) || strlen($title) < 3 || strlen($title) > 64) {
             return Result::fail("Title length is not correct");    
         }
@@ -40,8 +43,32 @@ readonly class PostService {
 
             $this->tagService->addMultipleTags($tagsArray);
             $tagsIdsArray = $this->tagService->getTagsIdsWithName($tagsArray);
-            error_log(implode(", ", $tagsIdsArray));
             $this->tagService->addMultiplePostsTags($postId, $tagsIdsArray);
+        }
+
+        if(isset($images) && $images['error'][0] === UPLOAD_ERR_OK) {
+            $newImagesNames = [];
+
+            foreach($images['name'] as $i => $name) {
+                $parts = explode(".", $name);
+                $type = end($parts);
+                
+                if(!ImagesService::isImageTypeSupported($type)) {
+                    $errors['image'] = ImagesService::getImageTypeSupportingError();
+                    return Result::fail("Validation error", $errors);
+                }
+
+                $result = ImagesService::uploadNewImage(E_IMAGES_TYPES::Post, $images['tmp_name'][$i], $type);
+                if(!$result->isValid) {
+                    $errors['image'] = $result->message;
+                    return Result::fail("Validation error", $errors);
+                }
+
+                $newImagesNames[] = $result->value;
+            }
+
+            $this->imagesService->addMultiplePostImages($postId, $newImagesNames);
+            error_log("afaf");
         }
 
         return Result::success("Post created successfully");
@@ -109,6 +136,8 @@ readonly class PostService {
         if($post['user_id'] != $userId) {
             throw new Exception("You don't have permission to edit this post");
         }
+
+        ImagesService::deleteImages(E_IMAGES_TYPES::Post, $this->imagesService->getPostImages($postId));
 
         $rowCount = $this->postRepo->deletePostById($postId);
 

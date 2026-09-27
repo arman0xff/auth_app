@@ -5,9 +5,6 @@ namespace Repositories;
 use E_POSTS_STATUSES;
 use PDO;
 use Interfaces\IPostRepository;
-use Exception;
-use E_SEND_MAIL_RETURN_CODES;
-use Override;
 
 readonly class PostRepository implements IPostRepository {
     public function __construct(private PDO $pdo) {
@@ -15,7 +12,9 @@ readonly class PostRepository implements IPostRepository {
     }
 
     public function findUserPostsByUserId(int $userId): array {
-        $sql = "SELECT * FROM `posts` WHERE `user_id` = :userId";
+        $sql = "SELECT p.*, GROUP_CONCAT(DISTINCT t.`name`) AS `tags`, GROUP_CONCAT(DISTINCT pi.`file_name`) AS `images` 
+            FROM `posts` p LEFT JOIN `post_tags` pt ON pt.`post_id` = p.`id` LEFT JOIN `tags` t ON t.`id` = pt.`tag_id` 
+            LEFT JOIN `post_images` pi ON pi.`post_id` = p.`id` WHERE `user_id` = :userId GROUP BY p.`id` ORDER BY `created_at` DESC";
         $sth = $this->pdo->prepare($sql);
         $sth->execute(["userId" => $userId]);
 
@@ -64,18 +63,18 @@ readonly class PostRepository implements IPostRepository {
     }
 
     public function getAllPosts(): array {
-        $sql = "SELECT p.`user_id`, p.`title`, p.`text`, p.`created_at`, u.`first_name`, u.`last_name`, u.`image_id`, GROUP_CONCAT(t.`name`) AS `tags`
-            FROM `posts` p JOIN `users` u ON p.`user_id` = u.`id` LEFT JOIN `post_tags` pt ON pt.`post_id` = p.`id` LEFT JOIN `tags` t ON t.`id` = pt.`tag_id` WHERE p.`status` = 'published' 
-            GROUP BY p.`id` ORDER BY `created_at` DESC";
+        $sql = "SELECT p.`user_id`, p.`title`, p.`text`, p.`created_at`, u.`first_name`, u.`last_name`, u.`profile_image_name`, GROUP_CONCAT(DISTINCT t.`name`) AS `tags`, GROUP_CONCAT(DISTINCT pi.`file_name`) AS `images` 
+            FROM `posts` p JOIN `users` u ON p.`user_id` = u.`id` LEFT JOIN `post_tags` pt ON pt.`post_id` = p.`id` LEFT JOIN `tags` t ON t.`id` = pt.`tag_id` 
+            LEFT JOIN `post_images` pi ON pi.`post_id` = p.`id` WHERE p.`status` = 'published' GROUP BY p.`id` ORDER BY `created_at` DESC";
         $sth = $this->pdo->query($sql);
 
         return $sth->fetchAll();
     }
 
     public function getAllPostsWithCategory(int $categoryId): array {
-        $sql = "SELECT p.`user_id`, p.`title`, p.`text`, p.`created_at`, u.`first_name`, u.`last_name`, u.`image_id`, GROUP_CONCAT(t.`name`) AS `tags`
-            FROM `posts` p JOIN `users` u ON p.`user_id` = u.`id` LEFT JOIN `post_tags` pt ON pt.`post_id` = p.`id` LEFT JOIN `tags` t ON t.`id` = pt.`tag_id` WHERE p.`status` = 'published' 
-            AND p.`category_id` = :categoryId GROUP BY p.`id` ORDER BY `created_at` DESC";
+        $sql = "SELECT p.`user_id`, p.`title`, p.`text`, p.`created_at`, u.`first_name`, u.`last_name`, u.`profile_image_name`, GROUP_CONCAT(t.`name`) AS `tags`, GROUP_CONCAT(DISTINCT pi.`file_name`) AS `images` 
+            FROM `posts` p JOIN `users` u ON p.`user_id` = u.`id` LEFT JOIN `post_tags` pt ON pt.`post_id` = p.`id` LEFT JOIN `tags` t ON t.`id` = pt.`tag_id` LEFT JOIN `post_images` pi ON pi.`post_id` = p.`id` 
+            WHERE p.`status` = 'published' AND p.`category_id` = :categoryId GROUP BY p.`id` ORDER BY `created_at` DESC";
         $sth = $this->pdo->prepare($sql);
         $sth->execute(["categoryId" => $categoryId]);
 

@@ -4,8 +4,6 @@ namespace Repositories;
 
 use PDO;
 use Interfaces\ITagRepository;
-use Exception;
-use Override;
 
 readonly class TagRepository implements ITagRepository {
     public function __construct(private PDO $pdo) {
