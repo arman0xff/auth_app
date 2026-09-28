@@ -12,6 +12,8 @@ use Controllers\PostController;
 use Services\PostService;
 use Services\CategoryService;
 use Services\TagService;
+use Services\CommentService;
+use Controllers\CommentController;
 use Middlewares\CsrfMiddleware;
 
 use Repositories\UserRepository;
@@ -20,6 +22,7 @@ use Repositories\ImagesRepository;
 use Repositories\PostRepository;
 use Repositories\CategoryRepository;
 use Repositories\TagRepository;
+use Repositories\CommentRepository;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../src/DBConnection.php';
@@ -59,23 +62,31 @@ require_once __DIR__ . '/../src/Interfaces/IImagesRepository.php';
 require_once __DIR__ . '/../src/Repositories/ImagesRepository.php';
 require_once __DIR__ . '/../src/Services/ImagesService.php';
 
+require_once __DIR__ . '/../src/Controllers/CommentController.php';
+require_once __DIR__ . '/../src/Interfaces/ICommentRepository.php';
+require_once __DIR__ . '/../src/Repositories/CommentRepository.php';
+require_once __DIR__ . '/../src/Services/CommentService.php';
+
 $authRepo = new AuthRepository($pdo);
 $imagesRepo = new ImagesRepository($pdo);
 $userRepo = new UserRepository($pdo);
 $postRepo = new PostRepository($pdo);
 $catRepo = new CategoryRepository($pdo);
 $tagRepo = new TagRepository($pdo);
+$commentRepo = new CommentRepository($pdo);
 
 $authService = new AuthService(new AuthRepository($pdo));
 $imagesService = new ImagesService($imagesRepo);
 $userService = new UserService($userRepo, $authService);
 $catService = new CategoryService($catRepo);
 $tagService = new TagService($tagRepo);
+$commentService = new CommentService($commentRepo);
 
 $postService = new PostService($postRepo, $authService, $catService, $tagService, $imagesService);
 
 $userController = new UserController($userService, $authService, $postService, $catService);
-$postController = new PostController($postService, $userService, $catService);
+$postController = new PostController($postService, $userService, $catService, $commentService);
+$commentController = new CommentController($commentService);
 
 $requestMethod = $_SERVER["REQUEST_METHOD"];
 
@@ -275,6 +286,20 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
             $postController->showAllPosts();
         }
         else {
+            http_response_code(405);
+            echo "Method not allowed.";
+        }
+        break;
+    }
+    case ADD_COMMENT_ROUTE: {
+        if(!isset($_SESSION['id'])) {
+            header('Location: ' . LOGIN_USER_ROUTE);
+            exit;
+        }
+
+        if($requestMethod === "POST") {
+            $commentController->addNewComment();
+        } else {
             http_response_code(405);
             echo "Method not allowed.";
         }

@@ -6,11 +6,13 @@ use Services\UserService;
 use Services\PostService;
 use Services\CategoryService;
 use Services\ImagesService;
+use Services\CommentService;
 use Services\E_IMAGES_TYPES;
 use Exception;
 
 readonly class PostController {
-    public function __construct(private PostService $postService, private UserService $userService, private CategoryService $catService) {
+    public function __construct(private PostService $postService, private UserService $userService, private CategoryService $catService,
+        private CommentService $commentService) {
         
     }
 
@@ -96,6 +98,17 @@ readonly class PostController {
             }
 
             $categories = $this->catService->getAllCategories();
+            $postIds = array_column($posts, 'id');
+            $allComments = $this->commentService->getPostsComments($postIds);
+            $commentsByPost = [];
+
+            foreach($allComments as $c) {
+                $commentsByPost[$c['post_id']][] = $c;
+            }
+
+            foreach($posts as &$post) {
+                $post['comment'] = $commentsByPost[$post['id']] ?? [];
+            }
 
             require_once __DIR__ . '/../Views/Posts.php';
         }

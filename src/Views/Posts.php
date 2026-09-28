@@ -27,24 +27,17 @@ use Services\E_IMAGES_TYPES;
             <p>Filter by category:</p>
             <form method="get" action="<?php echo POSTS_ROUTE ?>">
                 <select name="category">
-                    <option value="<?php echo 0?>">
-                        All categories
-                    </option>
+                    <option value="<?php echo 0?>">All categories</option>
 
-                    <?php 
-                        if(empty($categories)) { 
-                            echo ('No category added'); 
-                        }
-                        else {
-                            foreach($categories as $cat) { ?> 
-                                <option value="<?php echo $cat['id']?>">
-                                    <?php echo (isset($_GET['category']) && $_GET['category'] == $cat['id']) ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($cat['name']); ?>
-                                </option>
-                            <?php
-                            }
-                        }
-                    ?>
+                    <?php if(empty($categories)) { ?>
+                            <option disabled>No category added</option>
+                    <?php } else { ?>
+                        <?php foreach($categories as $cat) { ?> 
+                            <option value="<?php echo $cat['id']; ?>" <?php echo isset($_GET['category']) && $_GET['category'] == $cat['id'] ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($cat['name']); ?>
+                            </option>
+                        <?php } ?>
+                    <?php } ?>
                 </select>
 
                 <button type="submit">Apply filter</button>
@@ -74,11 +67,51 @@ use Services\E_IMAGES_TYPES;
                                 <?php } ?>
                             </div>
                         <?php } ?>
+
+                        <details style="margin-top: 6px;">
+                            <summary style="cursor: pointer; color: blue;">Reply</summary>
+                            <form method="post" action="/comment/add" style="margin-top: 6px;">
+                                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                                <input type="hidden" name="post_id" value="<?php echo $post['id']; ?>">
+                                
+                                <input type="text" name="text" placeholder="Write a reply..." required maxlength="255">
+                                <button type="submit">Send</button>
+                            </form>
+                        </details>
+
+                        <?php if(!empty($post['comment'])) { ?>
+                            <div class="post-comments">
+                                <?php foreach ($post['comment'] as $c) { ?>
+                                    <div class="comment-item">
+                                        <?php if ($c['deleted_at'] !== null) { ?>
+                                            <p style="color: gray; font-style: italic;">This comment has been deleted</p>
+                                        <?php } else { ?>
+                                            <p>
+                                                <strong><?php echo htmlspecialchars($c['first_name'] . ' ' . $c['last_name']); ?>:</strong> 
+                                                <?php echo htmlspecialchars($c['text']); ?>
+                                            </p>
+                                            
+                                            <details style="margin-top: 6px;">
+                                                <summary style="cursor: pointer; color: blue;">Reply</summary>
+                                                <form method="post" action="/comment/add" style="margin-top: 6px;">
+                                                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                                                    <input type="hidden" name="post_id" value="<?php echo $post['id']; ?>">
+                                                    <input type="hidden" name="parent_id" value="<?php echo $c['id']; ?>">
+                                                    
+                                                    <input type="text" name="text" placeholder="Write a reply..." required maxlength="255">
+                                                    <button type="submit">Send</button>
+                                                </form>
+                                            </details>
+                                        <?php } ?>
+                                    </div>
+                                <?php } ?>
+                            </div>
+                        <?php } ?>
                     </article>
-                    <?php } ?>
                 <?php } ?>
             <?php } ?>
         </div>
-    </main>
+    <?php } ?>
+</main>
 </body>
 </html>

@@ -37,6 +37,7 @@ const ADD_NEW_POST_ROUTE = PROFILE_USER_ROUTE . "/add-new-post";
 const EDIT_POST_ROUTE = PROFILE_USER_ROUTE . "/edit-post";
 const DELETE_POST_ROUTE = PROFILE_USER_ROUTE . "/delete-post";
 const POSTS_ROUTE = "/posts";
+const ADD_COMMENT_ROUTE = "/comment/add";
 
 enum E_SEND_MAIL_RETURN_CODES {
     case Success;
