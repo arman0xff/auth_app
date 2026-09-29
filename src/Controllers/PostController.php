@@ -7,13 +7,13 @@ use Services\PostService;
 use Services\CategoryService;
 use Services\ImagesService;
 use Services\CommentService;
+use Services\LikeService;
 use Services\E_IMAGES_TYPES;
 use Exception;
 
 readonly class PostController {
     public function __construct(private PostService $postService, private UserService $userService, private CategoryService $catService,
-        private CommentService $commentService) {
-        
+        private CommentService $commentService, private LikeService $likeService) {
     }
 
     public function addNewPost(): void {
@@ -106,8 +106,16 @@ readonly class PostController {
                 $commentsByPost[$c['post_id']][] = $c;
             }
 
-            foreach($posts as &$post) {
-                $post['comment'] = $commentsByPost[$post['id']] ?? [];
+            foreach($posts as $key => $post) {
+                $posts[$key]['comment'] = $commentsByPost[$post['id']] ?? [];
+                
+                $result = $this->likeService->getLikesCountByPostId($post['id']);
+                if($result->isValid) {
+                    $posts[$key]['likesCount'] = $result->value;
+                }
+                else {
+                    $posts[$key]['likesCount'] = 0;
+                }
             }
 
             require_once __DIR__ . '/../Views/Posts.php';

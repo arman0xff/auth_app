@@ -29,7 +29,7 @@
         </table>
 
         <?php if(empty($_GET['id'])) {?>
-            <a href="<?= EDIT_PROFILE_ROUTE ?>" class="router-button">Edit</a>
+            <a href="<?php echo EDIT_PROFILE_ROUTE; ?>" class="router-button">Edit</a>
             <a href="<?php echo DASHBOARD_USER_ROUTE; ?>" class="router-button">Dashboard</a>
             <a href="<?php echo POSTS_ROUTE; ?>" class="router-button">All Posts</a>
             
@@ -46,7 +46,6 @@
                 <select name="category" id="category">
                     <?php 
                         if(empty($categories)) { 
-                            
                             echo ('No category added'); 
                         }
                         else { 

@@ -13,7 +13,9 @@ use Services\PostService;
 use Services\CategoryService;
 use Services\TagService;
 use Services\CommentService;
+use Services\LikeService;
 use Controllers\CommentController;
+use Controllers\LikeController;
 use Middlewares\CsrfMiddleware;
 
 use Repositories\UserRepository;
@@ -23,6 +25,7 @@ use Repositories\PostRepository;
 use Repositories\CategoryRepository;
 use Repositories\TagRepository;
 use Repositories\CommentRepository;
+use Repositories\LikeRepository;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../src/DBConnection.php';
@@ -67,6 +70,11 @@ require_once __DIR__ . '/../src/Interfaces/ICommentRepository.php';
 require_once __DIR__ . '/../src/Repositories/CommentRepository.php';
 require_once __DIR__ . '/../src/Services/CommentService.php';
 
+require_once __DIR__ . '/../src/Controllers/LikeController.php';
+require_once __DIR__ . '/../src/Interfaces/ILikeRepository.php';
+require_once __DIR__ . '/../src/Repositories/LikeRepository.php';
+require_once __DIR__ . '/../src/Services/LikeService.php';
+
 $authRepo = new AuthRepository($pdo);
 $imagesRepo = new ImagesRepository($pdo);
 $userRepo = new UserRepository($pdo);
@@ -74,6 +82,7 @@ $postRepo = new PostRepository($pdo);
 $catRepo = new CategoryRepository($pdo);
 $tagRepo = new TagRepository($pdo);
 $commentRepo = new CommentRepository($pdo);
+$likeRepo = new LikeRepository($pdo);
 
 $authService = new AuthService(new AuthRepository($pdo));
 $imagesService = new ImagesService($imagesRepo);
@@ -81,12 +90,14 @@ $userService = new UserService($userRepo, $authService);
 $catService = new CategoryService($catRepo);
 $tagService = new TagService($tagRepo);
 $commentService = new CommentService($commentRepo);
+$likeService = new LikeService($likeRepo);
 
 $postService = new PostService($postRepo, $authService, $catService, $tagService, $imagesService);
 
 $userController = new UserController($userService, $authService, $postService, $catService);
-$postController = new PostController($postService, $userService, $catService, $commentService);
+$postController = new PostController($postService, $userService, $catService, $commentService, $likeService);
 $commentController = new CommentController($commentService);
+$likeController = new LikeController($likeService);
 
 $requestMethod = $_SERVER["REQUEST_METHOD"];
 
@@ -299,6 +310,20 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
 
         if($requestMethod === "POST") {
             $commentController->addNewComment();
+        } else {
+            http_response_code(405);
+            echo "Method not allowed.";
+        }
+        break;
+    }
+    case ADD_LIKE_ROUTE: {
+        if(!isset($_SESSION['id'])) {
+            header('Location: ' . LOGIN_USER_ROUTE);
+            exit;
+        }
+
+        if($requestMethod === "POST") {
+            $likeController->addNewLike();
         } else {
             http_response_code(405);
             echo "Method not allowed.";

@@ -5,8 +5,7 @@ namespace Controllers;
 use Services\CommentService;
 
 readonly class CommentController {
-public function __construct(private CommentService $commentService) {
-        
+    public function __construct(private CommentService $commentService) {       
     }
 
     public function addNewComment(): void {

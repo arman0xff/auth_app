@@ -10,6 +10,7 @@ use Services\E_IMAGES_TYPES;
       <meta charset="UTF-8">
       <title>Profile</title>
       <link rel="stylesheet" href="/style.css">
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 </head>
 <body>
     <main class="panel">
@@ -107,11 +108,29 @@ use Services\E_IMAGES_TYPES;
                                 <?php } ?>
                             </div>
                         <?php } ?>
+
+                        <button class="button button-like <?php if($post['likesCount'] > 0) { echo "liked"; }?>" data-id="<?php echo $post['id']; ?>">
+                            <i class="fa fa-heart"></i>
+                            <span>Like</span>
+                            <span class="like-count total-likes-<?php echo $post['id']; ?>"><?php echo $post['likesCount']; ?></span>
+                        </button>
                     </article>
                 <?php } ?>
             <?php } ?>
         </div>
     <?php } ?>
+    
+    <script>
+        $('.button-like').on('click', function() {
+            let btn = $(this);
+            let postId = btn.data('id');
+
+            $.post('<?php echo ADD_LIKE_ROUTE; ?>', {csrf_token: "<?php echo $_SESSION['csrf_token']; ?>", post_id: postId}, function(newCount) {
+                btn.toggleClass('liked');
+                $('.total-likes-' + postId).text(newCount);
+            });
+        });
+    </script>
 </main>
 </body>
 </html>
