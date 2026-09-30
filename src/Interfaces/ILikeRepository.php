@@ -7,4 +7,6 @@ interface ILikeRepository {
     public function createOrDeleteLike(int $postId, int $userId);
     public function deleteLike(int $postId, int $userId);
     public function getLikesCountByPostId(int $postId);
+    public function getPostsLikes(array $postIds);
+    public function getUserPostsWithLikes(int $userId, array $postIds);
 }

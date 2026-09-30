@@ -109,7 +109,7 @@ use Services\E_IMAGES_TYPES;
                             </div>
                         <?php } ?>
 
-                        <button class="button button-like <?php if($post['likesCount'] > 0) { echo "liked"; }?>" data-id="<?php echo $post['id']; ?>">
+                        <button class="button button-like <?php if($post['isLiked']) { echo "liked"; }?>" data-id="<?php echo $post['id']; ?>">
                             <i class="fa fa-heart"></i>
                             <span>Like</span>
                             <span class="like-count total-likes-<?php echo $post['id']; ?>"><?php echo $post['likesCount']; ?></span>

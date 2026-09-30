@@ -293,6 +293,11 @@ switch (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
         break;
     }
     case POSTS_ROUTE: {
+        if(!isset($_SESSION['id'])) {
+            header('Location: ' . LOGIN_USER_ROUTE);
+            exit;
+        }
+        
         if($requestMethod === "GET") {
             $postController->showAllPosts();
         }

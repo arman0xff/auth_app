@@ -21,18 +21,28 @@ readonly class LikeService {
 
     public function getLikesCountByPostId(int $postId): Result {
         $result = $this->likeRepo->getLikesCountByPostId($postId);
-        if(!$result) {
+        if($result === false) {
             return Result::fail("Error while executing query");
         }
 
         return Result::success("Post likes fetched successfully", $result);
     }
 
-    // public function getPostsLikes(array $postIds): array {
-    //     if(empty($postIds)) {
-    //         return [];
-    //     }
+    public function getPostsLikes(array $postIds): Result {
+        if(empty($postIds)) {
+            return Result::fail("Post ids is empty");
+        }
 
-    //     return $this->likeRepo->getPostsLikes($postIds);
-    // }
+        $result = $this->likeRepo->getPostsLikes($postIds);
+
+        return Result::success("Post likes fetched successfully", $result);
+    }
+
+    public function getUserPostsWithLikes(int $userId, array $postIds): array {
+        if(empty($postIds)) {
+            return [];
+        }
+
+        return $this->likeRepo->getUserPostsWithLikes($userId, $postIds);
+    }
 }

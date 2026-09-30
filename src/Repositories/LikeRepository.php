@@ -46,6 +46,28 @@ readonly class LikeRepository implements ILikeRepository {
         return $sth->fetchColumn();
     }
 
+    public function getPostsLikes(array $postIds): array {
+        $sql = "SELECT `post_id`, COUNT(*) as `count` FROM `post_likes` WHERE `post_id` IN(";
+
+        $isFirst = true;
+        foreach($postIds as $postId) {
+            if($isFirst) {
+                $sql = $sql . "?";
+                $isFirst = false;
+            }
+            else {
+                $sql = $sql . ",?";
+            }
+        }
+
+        $sql = $sql . ") GROUP BY `post_id`";
+        $sth = $this->pdo->prepare($sql);
+
+        $sth->execute($postIds);
+
+        return $sth->fetchAll(PDO::FETCH_KEY_PAIR);
+    }
+
     public function getUserPostsWithLikes(int $userId, array $postIds): array {
         $sql = "SELECT `post_id` FROM `post_likes` WHERE `post_id` IN(";
 
@@ -67,6 +89,6 @@ readonly class LikeRepository implements ILikeRepository {
 
         $sth->execute($postIds);
 
-        return $sth->fetchAll();
+        return $sth->fetchAll(PDO::FETCH_COLUMN);
     }
 }

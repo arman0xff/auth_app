@@ -106,16 +106,20 @@ readonly class PostController {
                 $commentsByPost[$c['post_id']][] = $c;
             }
 
+            $likedPosts = $this->likeService->getUserPostsWithLikes($_SESSION["id"], $postIds);
+            $postsLikesResult = $this->likeService->getPostsLikes($postIds);
+
             foreach($posts as $key => $post) {
                 $posts[$key]['comment'] = $commentsByPost[$post['id']] ?? [];
                 
-                $result = $this->likeService->getLikesCountByPostId($post['id']);
-                if($result->isValid) {
-                    $posts[$key]['likesCount'] = $result->value;
+                if($postsLikesResult->isValid && array_key_exists($post['id'], $postsLikesResult->value)) {
+                    $posts[$key]['likesCount'] = $postsLikesResult->value[$post['id']];
                 }
                 else {
                     $posts[$key]['likesCount'] = 0;
                 }
+
+                $posts[$key]['isLiked'] = in_array($post['id'], $likedPosts);
             }
 
             require_once __DIR__ . '/../Views/Posts.php';
