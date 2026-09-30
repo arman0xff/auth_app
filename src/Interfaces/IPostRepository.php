@@ -8,7 +8,7 @@ interface IPostRepository {
     public function createPost(int $userId, string $title, string $text, int $categoryId);
     public function updatePostData(int $postId, string $title, string $text, \E_POSTS_STATUSES $status);
     public function deletePostById(int $postId);
-    public function getAllPosts();
+    public function getAllPosts(array $filters = []);
     public function getAllPostsWithCategory(int $categoryId);
     public function findPostById(int $postId);
 }

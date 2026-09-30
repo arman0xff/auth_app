@@ -146,14 +146,14 @@ readonly class PostService {
         }
     }
 
-    public function getAllPosts(): array {
-        $res = $this->postRepo->getAllPosts();
+    public function getAllPosts(array $filters = []): Result {
+        $res = $this->postRepo->getAllPosts($filters);
 
         if(sizeof($res) == 0) {
-            throw new Exception("No post found");
+            return Result::fail("No post found", []);
         }
 
-        return $res;
+        return Result::success("", $res);
     }
 
     public function getAllPostsWithCategory(int $categoryId): Result {

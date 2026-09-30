@@ -62,11 +62,62 @@ readonly class PostRepository implements IPostRepository {
         return $sth->rowCount();
     }
 
-    public function getAllPosts(): array {
-        $sql = "SELECT p.`id`, p.`user_id`, p.`title`, p.`text`, p.`created_at`, u.`first_name`, u.`last_name`, u.`profile_image_name`, GROUP_CONCAT(DISTINCT t.`name`) AS `tags`, GROUP_CONCAT(DISTINCT pi.`file_name`) AS `images` 
-            FROM `posts` p JOIN `users` u ON p.`user_id` = u.`id` LEFT JOIN `post_tags` pt ON pt.`post_id` = p.`id` LEFT JOIN `tags` t ON t.`id` = pt.`tag_id` 
-            LEFT JOIN `post_images` pi ON pi.`post_id` = p.`id` WHERE p.`status` = 'published' GROUP BY p.`id` ORDER BY `created_at` DESC";
-        $sth = $this->pdo->query($sql);
+    public function getAllPosts(array $filters = []): array {
+        $sql = "SELECT p.`id`, p.`user_id`, p.`title`, p.`text`, p.`created_at`, u.`first_name`, u.`last_name`, u.`profile_image_name`, 
+            GROUP_CONCAT(DISTINCT t.`name`) AS `tags`, GROUP_CONCAT(DISTINCT pi.`file_name`) AS `images`,
+            (SELECT COUNT(*) FROM `post_likes` pl WHERE pl.`post_id` = p.`id`) AS `likes_count`,
+            (SELECT COUNT(*) FROM `post_comments` pc WHERE pc.`post_id` = p.`id`) AS `comments_count`
+            FROM `posts` p JOIN `users` u ON p.`user_id` = u.`id` LEFT JOIN `post_tags` pt ON pt.`post_id` = p.`id` 
+            LEFT JOIN `tags` t ON t.`id` = pt.`tag_id` LEFT JOIN `post_images` pi ON pi.`post_id` = p.`id` 
+            WHERE p.`status` = 'published' AND (p.`title` LIKE ? OR p.`text` LIKE ?) 
+            AND (? IS NULL OR p.`category_id` = ?) ";
+    
+        $searchArr = '%' . trim($filters['search'] ?? '') . '%';
+        $categoryId = !empty($filters['categoryId']) ? $filters['categoryId'] : null;
+
+        $params = [$searchArr, $searchArr, $categoryId, $categoryId];
+
+        if(!empty($filters['tags'])) {
+            $sql .= " AND t.`name` IN (";
+
+            $tags = trim($filters['tags']);
+            $tagsArr = array_values(explode(",", $tags));
+
+            $isFirst = true;
+            foreach($tagsArr as $tag) {
+                $params[] = $tag;
+
+                if($isFirst) {
+                    $sql .= "?";
+                    $isFirst = false;
+                }
+                else {
+                    $sql .= ",?";
+                }
+            }
+
+            $sql .= ") GROUP BY p.`id` ORDER BY ";
+        }
+        else {
+            $sql .= " GROUP BY p.`id` ORDER BY ";
+        }
+
+        $sql .= match($filters['sort'] ?? null) {
+            'most_liked' => '`likes_count` DESC, p.`created_at` DESC',
+            'most_commented' => '`comments_count` DESC, p.`created_at` DESC',
+            default => 'p.`created_at` DESC',
+        };
+
+        $page = $filters['page'] ?? null;
+        if(!empty($page)) {
+            $limit = $page * 10;
+            $offset = ($page - 1) * 10;
+            $sql .= " LIMIT " . $limit . " OFFSET " . $offset;
+        }
+
+        $sth = $this->pdo->prepare($sql);
+
+        $sth->execute($params);
 
         return $sth->fetchAll();
     }

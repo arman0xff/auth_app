@@ -88,17 +88,41 @@ readonly class PostController {
     public function showAllPosts(): void {
         try {
             $categoryId = $_GET['category'] ?? null;
+            $search = $_GET['search'] ?? null;
+            $tags = $_GET['tags'] ?? null;
+            $sort = $_GET['sort'] ?? null;
+            $page = $_GET['page'] ?? null;
 
-            if(empty($categoryId) || $categoryId == 0) {
-                $posts = $this->postService->getAllPosts();
+            $filters = [];
+
+            if(!empty($search)) {
+                $filters['search'] = $search;
+            }
+
+            if(!empty($categoryId) && $categoryId > 0) {
+                $filters['categoryId'] = (int)$categoryId;
+            }
+
+            if(!empty($tags)) {
+                $filters['tags'] = $tags;
+            }
+
+            if(!empty($sort)) {
+                $filters['sort'] = $sort;
+            }
+
+            if(!empty($page)) {
+                $filters['page'] = (int)$page;
             }
             else {
-                $result = $this->postService->getAllPostsWithCategory($categoryId);
-                $posts = $result->value;
+                $filters['page'] = 1;
             }
 
-            $categories = $this->catService->getAllCategories();
+            $result = $this->postService->getAllPosts($filters);
+            $posts = $result->value;
             $postIds = array_column($posts, 'id');
+
+            $categories = $this->catService->getAllCategories();
             $allComments = $this->commentService->getPostsComments($postIds);
             $commentsByPost = [];
 

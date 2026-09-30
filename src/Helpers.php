@@ -55,9 +55,7 @@ enum E_POSTS_STATUSES: string {
 
 final class Result {
     private function __construct(
-        public readonly string $message,
-        public readonly bool $isValid,
-        public readonly mixed $value
+        public readonly string $message, public readonly bool $isValid, public readonly mixed $value
     ) {}
 
     public static function fail(string $message, $value = null) {
